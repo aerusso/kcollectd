@@ -1,0 +1,18 @@
+[Desktop Entry]
+Encoding=UTF-8
+Exec=kcollectd
+Icon=kcollectd
+Type=Application
+Terminal=false
+StartupNotify=true
+Categories=Qt;KDE;System
+
+Name=KDE collectd database-viewer
+Name[de]=KDE collectd Datenbankbetrachter
+
+GenericName=Collectd viewer
+GenericName[de]=Collectd Datenbankbetrachter
+
+Comment=Viewer for collectd-databases
+Comment[de]=Betrachter für collectd-Datenbanken
+
