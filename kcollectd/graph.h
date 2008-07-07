@@ -137,9 +137,9 @@ inline void Graph::zoomOut()
 inline void Graph::wheelEvent(QWheelEvent *e)
 {
   if (e->delta() < 0)
-    zoom(1.0/1.259921050);
-  else
     zoom(1.259921050);
+  else
+    zoom(1.0/1.259921050);
 }
 
 #endif
