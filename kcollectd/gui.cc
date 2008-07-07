@@ -24,7 +24,11 @@
 #include <qlabel.h>
 #include <qwidget.h>
 
+#include <kpushbutton.h>
 #include <klistview.h>
+#include <kiconloader.h>
+#include <kglobal.h>
+#include <klocale.h>
 
 #include "graph.h"
 #include "gui.moc"
@@ -32,24 +36,35 @@
 KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
   : QWidget(parent, name)
 {
-  QHBoxLayout *hbox = new QHBoxLayout(this, 0, 4);
+  QHBoxLayout *hbox = new QHBoxLayout(this, 4, 4);
 
   listview = new KListView(this);
-  listview->addColumn("Sensordata");
+  listview->addColumn(i18n("Sensordata"));
   listview->setRootIsDecorated(true);
   listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  connect(listview, SIGNAL(executed(QListViewItem *)), 
-	SLOT(selectionChanged(QListViewItem *)));
   hbox->addWidget(listview);
 
   QVBoxLayout *vbox = new QVBoxLayout(hbox);
   graph = new Graph(this);
   vbox->addWidget(graph);
 
+  QHBoxLayout *hbox2 = new QHBoxLayout(vbox, 4);
   label = new QLabel(this);
-  vbox->addWidget(label);
+  hbox2->addWidget(label);
+  KPushButton *zoom_in = new KPushButton(BarIcon("viewmag+"), "", this);
+  zoom_in->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  hbox2->addWidget(zoom_in);
+  KPushButton *zoom_out = new KPushButton(BarIcon("viewmag-"), "", this);
+  zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  hbox2->addWidget(zoom_out);
 
-  hbox->activate();
+  connect(listview, SIGNAL(executed(QListViewItem *)), 
+	SLOT(selectionChanged(QListViewItem *)));
+  connect(zoom_in, SIGNAL(clicked()), 
+	graph, SLOT(zoomIn()));
+  connect(zoom_out, SIGNAL(clicked()), 
+	graph, SLOT(zoomOut()));
+
 }
 
 void KCollectdGui::selectionChanged(QListViewItem * item)

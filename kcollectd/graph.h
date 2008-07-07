@@ -82,14 +82,19 @@ class Graph : public QFrame
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
 
+  virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
   virtual void mouseReleaseEvent(QMouseEvent *e);
   virtual void mouseDoubleClickEvent(QMouseEvent *e);
   virtual void mouseMoveEvent(QMouseEvent *e);
   virtual void wheelEvent(QWheelEvent *e);
  
+public slots:
+  virtual void zoomIn();
+  virtual void zoomOut();
+
  private:
-  bool fetch_all_data();
+  bool fetchAllData();
   void drawAll();
   void minmax();
   void drawHeader(const QRect &rect);
@@ -118,5 +123,23 @@ class Graph : public QFrame
   QPixmap offscreen;
   QRect graphrect;
 };
+
+inline void Graph::zoomIn()
+{
+  zoom(1.0/1.259921050);
+}
+
+inline void Graph::zoomOut()
+{
+  zoom(1.259921050);
+}
+
+inline void Graph::wheelEvent(QWheelEvent *e)
+{
+  if (e->delta() < 0)
+    zoom(1.0/1.259921050);
+  else
+    zoom(1.259921050);
+}
 
 #endif

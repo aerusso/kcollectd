@@ -24,18 +24,30 @@
 #include <set>
 #include <cstdio>
 #include <sstream>
+#include <exception>
 
 #include <boost/filesystem.hpp>
 
 #include <kcmdlineargs.h>
 #include <kapplication.h>
 #include <klistview.h>
+#include <kmessagebox.h>
+#include <klocale.h>
 
 #include "gui.h"
 
 #ifndef RRD_BASEDIR
 # define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
+
+class bad_rrdinfo : public std::exception
+{
+public:
+  virtual const char* what() const throw()
+  {
+    return i18n("calling rrdinfo failed.");
+  }
+};
 
 /*
  * read the datasources-names of a rrd from “rrdtools info”, because
@@ -53,8 +65,7 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
   command += rrdfile;
   FILE *in = popen(command.c_str(), "r");
   if (!in) {
-    std::cerr << "popen rrdtool failed!\n";
-    return; 
+    throw bad_rrdinfo();
   } 
 
   // read in the output and find ds[...] lines
@@ -73,7 +84,9 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
       line += static_cast<char>(c);
    }
   }
-  fclose(in);
+  if (pclose(in)) {
+    throw bad_rrdinfo();
+  }
 }
 
 void get_datasources(const std::string &rrdfile, const std::string &info,
@@ -88,12 +101,12 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
   }
 }
 
-void get_rrds(const boost::filesystem::path path, KListView *listview)
+void get_rrds(const boost::filesystem::path rrdpath, KListView *listview)
 {
   using namespace boost::filesystem;
-
+  
   const directory_iterator end_itr;
-  for (directory_iterator host(path); host != end_itr; ++host ) {
+  for (directory_iterator host(rrdpath); host != end_itr; ++host ) {
     if (is_directory(*host)) {
       KListViewItem *hostitem = new KListViewItem(listview, host->leaf());
       hostitem->setSelectable(false);
@@ -122,13 +135,27 @@ void get_rrds(const boost::filesystem::path path, KListView *listview)
 
 int main(int argc, char **argv)
 {
+  using namespace boost::filesystem;
+
   std::vector<std::string> rrds;
   
   KCmdLineArgs::init(argc, argv, "Kcollectd", "kcollectd", "Blafasel", "0.1");
   KApplication a;
   KCollectdGui gui;
-  get_rrds(RRD_BASEDIR, gui.listview); 
-
+  
+  try {
+    get_rrds(RRD_BASEDIR, gui.listview);
+  } 
+  catch(basic_filesystem_error<path> &e) {
+    KMessageBox::error(0, QString(i18n("Failed to read collectd-structure at "
+		      "\'%1\'\nTerminating.")).arg(RRD_BASEDIR));
+    exit(1);
+  } 
+  catch(bad_rrdinfo &e) {
+    KMessageBox::error(0, e.what());
+    exit(2);
+  }
+  
   a.setMainWidget(&gui);
   gui.show();
   return a.exec();

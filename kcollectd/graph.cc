@@ -54,9 +54,6 @@ static void get_rrd_data (const std::string &file, const std::string &ds,
   char buffer[64];
   int status;
 
-  //  std::cout << "get_rrd_data (file = " << file 
-  //	   << ", ds = " << ds << ", ...);" << std::endl;
-
   argv[0] = strdup("fetch");
   argv[1] = strdup("--start");
   sprintf(buffer, "%ld", *start);
@@ -80,12 +77,6 @@ static void get_rrd_data (const std::string &file, const std::string &ds,
 
   const unsigned long length = (*end - *start) / *step;
 
-  // std::cout << "get_rrd_data: length = " << length 
-  // 	    << "; start = " << *start
-  // 	    << "; end = " << *end 
-  // 	    << "; step = " << *step 
-  // 	    << "; type = " << type<< ";\n";
-
   for(unsigned int i=0; i<ds_cnt; ++i) {
     if (ds != ds_name[i])
       continue;
@@ -97,8 +88,6 @@ static void get_rrd_data (const std::string &file, const std::string &ds,
 
   for(int i=0; i<argc; ++i) 
     free(argv[i]);
-
-  //  std::cout << "get_rrd_data: done" << std::endl;
 }
 
 static bool si_char(double d, std::string &s, double &m)
@@ -185,10 +174,8 @@ QSize Graph::sizeHint() const
  * set start end to the values get_rrd_data returns
  * don't change span, because it can shrink
  */
-bool Graph::fetch_all_data (void)
+bool Graph::fetchAllData (void)
 {
-  std::cout << "Graph::fetch_all_data ();" << std::endl;
-
   if (data_is_valid)
     return (true);
   
@@ -219,9 +206,6 @@ bool Graph::fetch_all_data (void)
 
 void Graph::setup(const char *filei, const char *dsi)
 {
-  std::cout << "Graph::setup (file = " << filei << ", " << dsi << ");"
-	   << std::endl;
-
   data_is_valid = false;
   avg_data.clear();
   min_data.clear();
@@ -234,7 +218,6 @@ void Graph::setup(const char *filei, const char *dsi)
   ds = dsi;
 
   drawAll();
-  std::cout << "Graph::setup: done\n";
 }
 
 void Graph::minmax()
@@ -367,14 +350,10 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
 
 void Graph::drawGraph(const QRect &rect, double min, double max)
 {
-  std::cout << "Graph::drawGraph" << std::endl;
-
   QPainter paint(&offscreen);
 
-  if (avg_data.empty()) {
-    std::cout << "avg empty\n";
+  if (avg_data.empty())
     return;
-  }
 
   const int size = avg_data.size();
 
@@ -428,9 +407,8 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
 
 void Graph::drawAll()
 {
-  std::cout << "Graph::drawAll" << std::endl;
   if (!data_is_valid)
-    fetch_all_data ();  
+    fetchAllData ();  
 
   // resize offscreen-map to widget-size
   offscreen.resize(contentsRect().width(), contentsRect().height());
@@ -475,10 +453,8 @@ void Graph::paintEvent(QPaintEvent *e)
   drawAll();
 }
 
-void Graph::mousePressEvent (QMouseEvent *e)
+void Graph::mousePressEvent(QMouseEvent *e)
 {
-  std::cout << "Graph::mousePressEvent (...);\n";
-
   origin_x = e->x ();
   origin_y = e->y ();
 
@@ -486,19 +462,18 @@ void Graph::mousePressEvent (QMouseEvent *e)
   origin_end = end;
 }
 
-void Graph::mouseReleaseEvent (QMouseEvent *)
+void Graph::mouseReleaseEvent(QMouseEvent *)
 {
 }
 
-void Graph::mouseDoubleClickEvent (QMouseEvent *)
+void Graph::mouseDoubleClickEvent(QMouseEvent *)
 {
 }
 
-void Graph::mouseMoveEvent (QMouseEvent *e)
+void Graph::mouseMoveEvent(QMouseEvent *e)
 {
-  if (e->state () != LeftButton) {
-    e->ignore ();
-    std::cout << "mouseMoveEvent: (e->button () & LeftButton) == 0\n";
+  if (e->state() != LeftButton && e->state() != MidButton) {
+    e->ignore();
     return;
   }
 
@@ -515,28 +490,22 @@ void Graph::mouseMoveEvent (QMouseEvent *e)
 
   end = origin_end - offset;
   const time_t now = time(0);
-  if (end > now )
-    end = now;
+  if (end > now + span * 2 / 3 )
+    end = now + span * 2 / 3;
 
   data_is_valid = false;
   drawAll();
 }
 
-void Graph::wheelEvent (QWheelEvent *e)
+void Graph::zoom(double factor)
 {
-  time_t time_span = span;
-  time_t time_center = end - span / 2;
+  time_t time_center = end - span / 2;  
+  span *= factor;
+  end = time_center + (span / 2);
 
-  if (e->delta() > 0)
-    time_span /= 1.259921050;
-  else
-    time_span *= 1.259921050;
-
-  end = time_center + (time_span / 2);
   const time_t now = time(0);
-  if (end > now )
-    end = now;
-  span = time_span;
+  if (end > now + (span * 2) / 3 )
+    end = now + (span * 2) / 3;
 
   data_is_valid = false;
   drawAll();
