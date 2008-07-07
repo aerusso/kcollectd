@@ -30,17 +30,17 @@
 #include <iostream>
 #include <vector>
 
-#include <qvbox.h>
+#include <qwidget.h>
 
 class QLabel;
 class Graph;
 class KListView;
 
-class BlaFasel : public QVBox
+class KCollectdGui : public QWidget
 {
   Q_OBJECT;
 public:
-  BlaFasel(QWidget *parent=0, const char *name=0);
+  KCollectdGui(QWidget *parent=0, const char *name=0);
 
 public slots:  
   void selectionChanged(QListViewItem * item);

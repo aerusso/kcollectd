@@ -5,7 +5,7 @@ Icon=kcollectd
 Type=Application
 Terminal=false
 StartupNotify=true
-Categories=Qt;KDE;System
+Categories=Qt;KDE;Utility;
 
 Name=KDE collectd database-viewer
 Name[de]=KDE collectd Datenbankbetrachter

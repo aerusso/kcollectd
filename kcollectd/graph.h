@@ -31,7 +31,7 @@
 #include <vector>
 #include <limits>
 
-#include <qwidget.h>
+#include <qframe.h>
 #include <qpixmap.h>
 #include <qrect.h>
 
@@ -69,7 +69,7 @@ public:
 /**
  *
  */
-class Graph : public QWidget
+class Graph : public QFrame
 {
   Q_OBJECT;
  public:
@@ -79,6 +79,7 @@ class Graph : public QWidget
 
   void setup(const char *rrd, const char *ds);
 
+  virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
 
   virtual void mousePressEvent(QMouseEvent *e);
@@ -91,6 +92,7 @@ class Graph : public QWidget
   bool fetch_all_data();
   void drawAll();
   void minmax();
+  void drawHeader(const QRect &rect);
   void drawYGrid(const QRect &rect, const Range &range, double base);
   void drawXGrid(const QRect &rect, time_t start, time_t end);
   void drawGraph(const QRect &rect, double min, double max);

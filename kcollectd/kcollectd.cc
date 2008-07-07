@@ -91,10 +91,9 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
 void get_rrds(const boost::filesystem::path path, KListView *listview)
 {
   using namespace boost::filesystem;
-  std::string basedir(RRD_BASEDIR);
 
   const directory_iterator end_itr;
-  for (directory_iterator host(basedir); host != end_itr; ++host ) {
+  for (directory_iterator host(path); host != end_itr; ++host ) {
     if (is_directory(*host)) {
       KListViewItem *hostitem = new KListViewItem(listview, host->leaf());
       hostitem->setSelectable(false);
@@ -127,14 +126,10 @@ int main(int argc, char **argv)
   
   KCmdLineArgs::init(argc, argv, "Kcollectd", "kcollectd", "Blafasel", "0.1");
   KApplication a;
-  BlaFasel blafasel;
-  blafasel.setGeometry(0, 0, 800, 480);
-  
-  a.setMainWidget(&blafasel);
+  KCollectdGui gui;
+  get_rrds(RRD_BASEDIR, gui.listview); 
 
-  get_rrds("/var/lib/collectd/rrd", blafasel.listview); 
-  
-
-  blafasel.show();
+  a.setMainWidget(&gui);
+  gui.show();
   return a.exec();
 }

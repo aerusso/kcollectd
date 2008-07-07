@@ -22,47 +22,41 @@
 
 #include <qlayout.h>
 #include <qlabel.h>
-#include <qvbox.h>
+#include <qwidget.h>
 
 #include <klistview.h>
 
 #include "graph.h"
 #include "gui.moc"
 
-BlaFasel::BlaFasel(QWidget *parent, const char *name)
-  : QVBox(parent, name)
+KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
+  : QWidget(parent, name)
 {
-  QHBox *hbox = new QHBox(this);
-  listview = new KListView(hbox);
+  QHBoxLayout *hbox = new QHBoxLayout(this, 0, 4);
+
+  listview = new KListView(this);
   listview->addColumn("Sensordata");
   listview->setRootIsDecorated(true);
-  listview->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   connect(listview, SIGNAL(executed(QListViewItem *)), 
 	SLOT(selectionChanged(QListViewItem *)));
+  hbox->addWidget(listview);
 
-  QWidget *w = new QWidget(hbox);
-  w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  QVBoxLayout *vbox = new QVBoxLayout(w);
-  graph = new Graph(w);
-  graph->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  QVBoxLayout *vbox = new QVBoxLayout(hbox);
+  graph = new Graph(this);
   vbox->addWidget(graph);
-  label = new QLabel(w);
-  vbox->addWidget(label);  
+
+  label = new QLabel(this);
+  vbox->addWidget(label);
+
+  hbox->activate();
 }
 
-void BlaFasel::selectionChanged(QListViewItem * item)
+void KCollectdGui::selectionChanged(QListViewItem * item)
 {
   if (item && item->text(1)) {
-    // std::cout << "clicked: " << item->text(0) << "→"
-    // 	      << item->text(2) << "\n";
-  
     graph->setup(item->text(2), item->text(0));
-
     label->setText(QString(item->text(1)));
-
-    // std::cout << "BlaFasel::selectionChanged: Calling graph->update ()...\n";
-    // std::cout.flush ();
-
     graph->update();
   }
 }

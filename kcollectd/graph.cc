@@ -143,7 +143,9 @@ static bool si_char(double d, std::string &s, double &m)
 static std::string si_number(double d, int p, const std::string &s, double m)
 {
   std::ostringstream os;
-  os << std::setprecision(p) << d/m << " " << s;
+  os << std::setprecision(p) << d/m;
+  if (!s.empty())
+    os << " " << s;
   return os.str();
 }
 
@@ -151,19 +153,30 @@ static std::string si_number(double d, int p, const std::string &s, double m)
  *
  */
 Graph::Graph(QWidget *parent, const char *name) :
-  QWidget(parent, name), data_is_valid(false), 
+  QFrame(parent, name), data_is_valid(false), 
   end(time(0)), span(3600*48), step(1), font(KGlobalSettings::generalFont())
 {
+  setFrameStyle(QFrame::GroupBoxPanel|QFrame::Plain);
+  setMinimumWidth(300);
+  setMinimumHeight(150);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
       const char *name) :
-  QWidget(parent, name), file(rrd), ds(dsi), data_is_valid(false), 
+  QFrame(parent, name), file(rrd), ds(dsi), data_is_valid(false), 
   end(time(0)), span(3600*48), step(1), font(KGlobalSettings::generalFont())
 {
-  std::cout << "Graph::Graph (rrd = " << rrd << ", ds = " << ds << ");"
-	   << std::endl;
+  setFrameStyle(QFrame::StyledPanel|QFrame::Plain);
+  setMinimumWidth(300);
+  setMinimumHeight(150);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   drawAll();
+}
+
+QSize Graph::sizeHint() const
+{
+  return QSize(640, 480);
 }
 
 /** 
@@ -273,6 +286,24 @@ void Graph::minmax()
   }
 
   y_range = Range(min, max);
+}
+
+void Graph::drawHeader(const QRect &rect)
+{
+  QPainter paint(&offscreen);
+
+  std::ostringstream os;
+
+  char buffer[50];
+  strftime(buffer, sizeof(buffer)-1, "%Y-%m-%d %H:%M:%S", localtime(&start));
+  os << "from " << buffer << " to ";
+  strftime(buffer, sizeof(buffer)-1, "%Y-%m-%d %H:%M:%S", localtime(&end));
+  os << buffer;
+  
+  const QFontMetrics fontmetric(font);
+  fontmetric.width(os.str());
+  paint.drawText((rect.left()+rect.right())/2-fontmetric.width(os.str())/2, 
+	fontmetric.ascent() + 2 , os.str());
 }
 
 void Graph::drawXGrid(const QRect &rect, time_t start, time_t end)
@@ -402,22 +433,23 @@ void Graph::drawAll()
     fetch_all_data ();  
 
   // resize offscreen-map to widget-size
-  offscreen.resize(rect().width(), rect().height());
+  offscreen.resize(contentsRect().width(), contentsRect().height());
 
   // clear
   QPainter paint(&offscreen);
-  paint.fillRect(rect(), backgroundBrush());
+  paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
 
   // margins
   const QFontMetrics fontmetric(font);
   const int labelheight = fontmetric.lineSpacing();
-  const int labelwidth = fontmetric.boundingRect("888.88 M").width();
+  const int labelwidth = fontmetric.boundingRect("888.888 M").width();
 
   // size of actual graph and draw
   // place for labels at the left and two line labels below
   const int marg = 4; // distance between labels and graph
-  graphrect.setRect(rect().left()+labelwidth+marg, rect().top(), 
-	rect().width()-labelwidth-marg, rect().height()-2*labelheight-marg);
+  graphrect.setRect(labelwidth+marg, labelheight+marg, 
+	contentsRect().width()-labelwidth-marg, 
+	contentsRect().height()-3*labelheight-2*marg);
 
   // auto y-scale
   minmax();
@@ -427,17 +459,19 @@ void Graph::drawAll()
   // black graph-background
   paint.fillRect(graphrect, Qt::black);
 
+  drawHeader(graphrect);
   drawYGrid(graphrect, y_range, base);
   drawXGrid(graphrect, start, end);
 
   drawGraph(graphrect, y_range.min(), y_range.max());
 
   // copy to screen
-  bitBlt(this, 0, 0, &offscreen, 0, 0);
+  bitBlt(this, contentsRect().left(), contentsRect().top(), &offscreen, 0, 0);
 }
 
-void Graph::paintEvent(QPaintEvent *)
+void Graph::paintEvent(QPaintEvent *e)
 {
+  QFrame::paintEvent(e);
   drawAll();
 }
 
