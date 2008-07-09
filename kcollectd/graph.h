@@ -98,8 +98,10 @@ public slots:
   void drawAll();
   void minmax();
   void drawHeader(const QRect &rect);
+  void drawXBaseGrid(QPainter &paint, const QRect &rect, 
+	time_t major, time_t minor, const char *format, bool center);
+  void drawXGrid(const QRect &rect);
   void drawYGrid(const QRect &rect, const Range &range, double base);
-  void drawXGrid(const QRect &rect, time_t start, time_t end);
   void drawGraph(const QRect &rect, double min, double max);
 
   // rrd-data
@@ -140,6 +142,11 @@ inline void Graph::wheelEvent(QWheelEvent *e)
     zoom(1.259921050);
   else
     zoom(1.0/1.259921050);
+}
+
+inline QSize Graph::sizeHint() const
+{
+  return QSize(640, 480);
 }
 
 #endif

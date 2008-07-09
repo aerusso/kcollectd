@@ -163,11 +163,6 @@ Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
   drawAll();
 }
 
-QSize Graph::sizeHint() const
-{
-  return QSize(640, 480);
-}
-
 /** 
  * get average, min and max data
  *
@@ -289,8 +284,110 @@ void Graph::drawHeader(const QRect &rect)
 	fontmetric.ascent() + 2 , os.str());
 }
 
-void Graph::drawXGrid(const QRect &rect, time_t start, time_t end)
+void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect, 
+      time_t major, time_t minor, const char *format, bool center)
 {
+  const QFontMetrics fontmetric(font);
+  int label_y = rect.bottom() + 4 + fontmetric.ascent();
+  
+  // setting up linear mappings
+  const linMap xmap(start, rect.left(), end, rect.right());
+
+  // draw minor lines
+  if(minor) {
+    time_t mmin = ((start+minor-1)/minor)*minor;
+    time_t mmax = (end/minor)*minor;
+    paint.setPen(QColor(80, 65, 34));
+    for(time_t i = mmin; i <= mmax; i += minor) {
+      paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
+    }
+  }
+
+  // draw major lines
+  time_t min = ((start+major-1)/major)*major;
+  time_t max = (end/major)*major;
+  paint.setPen(QColor(140, 115, 60));
+  for(time_t i = min; i <= max; i += major) {
+    paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
+  }
+
+  // draw labels
+  paint.setPen(QColor(0, 0, 0));
+  for(time_t i = min; i <= max; i += major) {
+    char label[50];
+    if(strftime(label, sizeof(label), format, gmtime(&i))) { 
+      // bmg: localtime. Aber dann liegen die Bezugspunkte daneben!!!
+      // gibt dann sowas wie 2:00 14:00 statt 0:00 12:00
+      if (center) {
+	paint.drawText(xmap(i + major / 2) - fontmetric.width(label) / 2, 
+	      label_y, label);
+      } else {
+	paint.drawText(xmap(i) - fontmetric.width(label) / 2, label_y, label);
+      } 
+    }
+  }
+}
+
+void Graph::drawXGrid(const QRect &rect)
+{
+  const time_t min = 60;
+  const time_t hour = 3600;
+  const time_t day = 24*hour;
+  const time_t week = 7*day;
+  const time_t month = 31*day;
+  const time_t year = 365*day;
+
+  struct {
+    time_t maxspan;
+    time_t major;
+    time_t minor;
+    const char *format;
+    bool center;
+  } axe_params[] = {
+    {    day,      1*min,       10,      "%H:%M",    false  },
+    {    day,      2*min,       30,      "%H:%M",    false  },
+    {    day,      5*min,      min,      "%H:%M",    false  },
+    {    day,     10*min,      min,      "%H:%M",    false  },
+    {    day,     30*min,   10*min,      "%H:%M",    false  },
+    {    day,       hour,   10*min,      "%H:%M",    false  },
+    {    day,     2*hour,   30*min,      "%H:%M",    false  },
+    {    day,     3*hour,     hour,      "%H:%M",    false  },
+    {    day,     6*hour,     hour,      "%H:%M",    false  },
+    {    day,    12*hour,   3*hour,      "%H:%M",    false  },
+    {   week,    12*hour,   3*hour,      "%a %H:%M", false  },
+    {   week,        day,   3*hour,      "%a",       true  },
+    {   week,      2*day,   6*hour,      "%a",       true  },
+    {  month,        day,        0,      "%a %d",    true  },
+    {  month,        day,        0,      "%d",       true  },
+    {      0,          0,        0,      0,          false  }
+  };
+
+  QPainter paint(&offscreen);
+  const QFontMetrics fontmetric(font);
+
+  time_t time_span = end-start;
+  
+  if (time_span < month) {
+    for(int i=0; axe_params[i].maxspan; ++i) {
+      if ((end-start) < axe_params[i].maxspan) {
+	char label[50];
+	time_t now = time(0);
+	if(strftime(label, sizeof(label), axe_params[i].format, gmtime(&now))) {
+	  const int textwidth = fontmetric.width(label) 
+	    * (end-start)/axe_params[i].major * 3 / 2;
+	  if (textwidth < rect.width()) {
+	    drawXBaseGrid(paint, rect, 
+		  axe_params[i].major, axe_params[i].minor, 
+		  axe_params[i].format, axe_params[i].center);
+	    break;
+	  }
+	}
+      }
+    }
+  } else if (time_span < 6*month) {
+  } else if (time_span < year) {
+  } else {
+  }
 }
 
 void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
@@ -310,20 +407,14 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
   // draw labels
   double min = ceil(y_range.min()/base)*base;
   double max = floor(y_range.max()/base)*base;
-  for(double i = min; i < max; i += base) {
+  for(double i = min; i <= max; i += base) {
     const std::string label = si_number(i, 6, SI, mag);
     const int x = rect.left() - fontmetric.width(label) - 4;
     paint.drawText(x,  ymap(i), label);
   }
-  { // now the topmost
-    const std::string label = si_number(max, 6, SI, mag);
-    const int y = rect.top() + fontmetric.ascent() + 1;
-    const int x = rect.left() - fontmetric.width(label) - 4;
-    paint.drawText(x, y, label);
-  }
 
   // minor lines
-  paint.setPen(QColor(100, 82, 43));
+  paint.setPen(QColor(80, 65, 34));
   double minbase = base/10;
   if (minbase * -ymap.m() < 5) minbase = base/5;
   if (minbase * -ymap.m() < 5) minbase = base/2;
@@ -439,7 +530,7 @@ void Graph::drawAll()
 
   drawHeader(graphrect);
   drawYGrid(graphrect, y_range, base);
-  drawXGrid(graphrect, start, end);
+  drawXGrid(graphrect);
 
   drawGraph(graphrect, y_range.min(), y_range.max());
 
