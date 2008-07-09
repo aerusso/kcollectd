@@ -112,6 +112,7 @@ public slots:
   time_t start;	// real start of data (from rrd_fetch)
   time_t end;	// real end of data (from rrd_fetch)
   time_t span;	// should-be size of data (may differ from end-start)
+  time_t tz_off; // offset of the local timezone from GMT
   unsigned long step;
 
   // technical helpers

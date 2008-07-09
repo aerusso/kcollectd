@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sys/time.h>
 #include <time.h>
 #include <stdlib.h>
 
@@ -35,6 +36,7 @@
 #include <qrect.h>
 
 #include <kglobalsettings.h>
+#include <klocale.h>
 
 #include "graph.moc"
 
@@ -149,6 +151,11 @@ Graph::Graph(QWidget *parent, const char *name) :
   setMinimumWidth(300);
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  struct timezone tz;
+  struct timeval tv;
+  gettimeofday(&tv, &tz);
+  tz_off = tz.tz_minuteswest * 60;
 }
 
 Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
@@ -160,6 +167,12 @@ Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
   setMinimumWidth(300);
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  struct timezone tz;
+  struct timeval tv;
+  gettimeofday(&tv, &tz);
+  tz_off = tz.tz_minuteswest * 60;
+
   drawAll();
 }
 
@@ -273,9 +286,11 @@ void Graph::drawHeader(const QRect &rect)
   std::ostringstream os;
 
   char buffer[50];
-  strftime(buffer, sizeof(buffer)-1, "%Y-%m-%d %H:%M:%S", localtime(&start));
+  strftime(buffer, sizeof(buffer)-1, 
+	i18n("%Y-%m-%d %H:%M:%S"), localtime(&start));
   os << "from " << buffer << " to ";
-  strftime(buffer, sizeof(buffer)-1, "%Y-%m-%d %H:%M:%S", localtime(&end));
+  strftime(buffer, sizeof(buffer)-1, 
+	i18n("%Y-%m-%d %H:%M:%S"), localtime(&end));
   os << buffer;
   
   const QFontMetrics fontmetric(font);
@@ -295,8 +310,8 @@ void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect,
 
   // draw minor lines
   if(minor) {
-    time_t mmin = ((start+minor-1)/minor)*minor;
-    time_t mmax = (end/minor)*minor;
+    time_t mmin = ((start + minor - tz_off) / minor) * minor + tz_off;
+    time_t mmax = ((end - tz_off) / minor) * minor + tz_off;
     paint.setPen(QColor(80, 65, 34));
     for(time_t i = mmin; i <= mmax; i += minor) {
       paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
@@ -304,8 +319,8 @@ void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect,
   }
 
   // draw major lines
-  time_t min = ((start+major-1)/major)*major;
-  time_t max = (end/major)*major;
+  time_t min = ((start + major - tz_off) / major) * major + tz_off;
+  time_t max = ((end - tz_off) / major) * major + tz_off;
   paint.setPen(QColor(140, 115, 60));
   for(time_t i = min; i <= max; i += major) {
     paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
@@ -315,9 +330,7 @@ void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect,
   paint.setPen(QColor(0, 0, 0));
   for(time_t i = min; i <= max; i += major) {
     char label[50];
-    if(strftime(label, sizeof(label), format, gmtime(&i))) { 
-      // bmg: localtime. Aber dann liegen die Bezugspunkte daneben!!!
-      // gibt dann sowas wie 2:00 14:00 statt 0:00 12:00
+    if(strftime(label, sizeof(label), i18n(format), localtime(&i))) { 
       if (center) {
 	paint.drawText(xmap(i + major / 2) - fontmetric.width(label) / 2, 
 	      label_y, label);
@@ -355,10 +368,10 @@ void Graph::drawXGrid(const QRect &rect)
     {    day,     6*hour,     hour,      "%H:%M",    false  },
     {    day,    12*hour,   3*hour,      "%H:%M",    false  },
     {   week,    12*hour,   3*hour,      "%a %H:%M", false  },
-    {   week,        day,   3*hour,      "%a",       true  },
-    {   week,      2*day,   6*hour,      "%a",       true  },
-    {  month,        day,        0,      "%a %d",    true  },
-    {  month,        day,        0,      "%d",       true  },
+    {   week,        day,   3*hour,      "%a",       true   },
+    {   week,      2*day,   6*hour,      "%a",       true   },
+    {  month,        day,        0,      "%a %d",    true   },
+    {  month,        day,        0,      "%d",       true   },
     {      0,          0,        0,      0,          false  }
   };
 
