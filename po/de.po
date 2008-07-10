@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-10 21:24+0200\n"
-"PO-Revision-Date: 2008-07-10 21:35+0200\n"
+"POT-Creation-Date: 2008-07-10 22:28+0200\n"
+"PO-Revision-Date: 2008-07-10 22:29+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
 "Language-Team:  <de@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,21 +15,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: graph.cc:291
+#: graph.cc:289
 msgid "%Y-%m"
 msgstr "%m %Y"
 
-#: graph.cc:293
+#: graph.cc:291
 msgid "%A %Y-%m-%d"
 msgstr "%A, %d. %m %Y"
 
-#: graph.cc:295
+#: graph.cc:293
 msgid "%A %Y-%m-%d %H:%M"
 msgstr "%A, %d. %m %Y %H:%M"
 
-#: graph.cc:297
+#: graph.cc:295
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr "%A, %d. %m %Y %H:%M"
+
+#: graph.cc:300
+msgid "from %1 to %2"
+msgstr "Von %1 bis %2"
+
+#: graph.cc:492
+msgid "week %U"
+msgstr "Woche %U"
 
 #: gui.cc:42
 msgid "Sensordata"
@@ -39,10 +47,19 @@ msgstr "Sensordaten"
 msgid "calling rrdinfo failed."
 msgstr "Aufruf von „rrdinfo“ fehlgeschlagen."
 
-#: kcollectd.cc:150
+#: kcollectd.cc:142
+msgid "KCollectd"
+msgstr "KCollectd"
+
+#: kcollectd.cc:143
+msgid "Viewer for Collectd-databases"
+msgstr "Betrachter für Collectd-Datensammlungen"
+
+#: kcollectd.cc:151
 msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
 msgstr ""
 "collectd-Struktur unter ‚%1‘ konnte nicht gelesen werden.\n"
 "Breche ab."
+

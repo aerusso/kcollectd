@@ -283,8 +283,6 @@ void Graph::drawHeader(const QRect &rect)
 {
   QPainter paint(&offscreen);
 
-  std::ostringstream os;
-
   QString format;
   time_t time_span = end - start;
   if (time_span > 3600*24*356)
@@ -296,16 +294,17 @@ void Graph::drawHeader(const QRect &rect)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  char buffer[50];
-  strftime(buffer, sizeof(buffer), format, localtime(&start));
-  os << "from " << buffer << " to ";
-  strftime(buffer, sizeof(buffer), format, localtime(&end));
-  os << buffer;
+  char buffer_from[50], buffer_to[50];
+  strftime(buffer_from, sizeof(buffer_from), format, localtime(&start));
+  strftime(buffer_to, sizeof(buffer_to), format, localtime(&end));
+  QString label = QString(i18n("from %1 to %2"))
+    .arg(buffer_from)
+    .arg(buffer_to);
   
   const QFontMetrics fontmetric(font);
-  fontmetric.width(os.str());
-  paint.drawText((rect.left()+rect.right())/2-fontmetric.width(os.str())/2, 
-	fontmetric.ascent() + 2 , os.str());
+  fontmetric.width(label);
+  paint.drawText((rect.left()+rect.right())/2-fontmetric.width(label)/2, 
+	fontmetric.ascent() + 2 , label);
 }
 
 void Graph::drawXBase(QPainter &paint, const QRect &rect, 
@@ -475,24 +474,24 @@ void Graph::drawXGrid(const QRect &rect)
     bool center;
     bla align;
   } axe_params[] = {
-    {    day,      1*min,       10,      "%H:%M",    false,   align_noalign },
-    {    day,      2*min,       30,      "%H:%M",    false,   align_noalign },
-    {    day,      5*min,      min,      "%H:%M",    false,   align_noalign },
-    {    day,     10*min,      min,      "%H:%M",    false,   align_noalign },
-    {    day,     30*min,   10*min,      "%H:%M",    false,   align_noalign },
-    {    day,       hour,   10*min,      "%H:%M",    false,   align_noalign },
-    {    day,     2*hour,   30*min,      "%H:%M",    false,   align_noalign },
-    {    day,     3*hour,     hour,      "%H:%M",    false,   align_noalign },
-    {    day,     6*hour,     hour,      "%H:%M",    false,   align_noalign },
-    {    day,    12*hour,   3*hour,      "%H:%M",    false,   align_noalign },
-    {   week,    12*hour,   3*hour,      "%a %H:%M", false,   align_noalign },
-    {   week,        day,   3*hour,      "%a",       true,    align_noalign },
-    {   week,      2*day,   6*hour,      "%a",       true,    align_noalign },
-    {  month,        day,   6*hour,      "%a %d",    true,    align_noalign },
-    {  month,        day,   6*hour,      "%d",       true,    align_noalign },
-    {   year,       week,      day,      "week %U",  true,    align_week    },
-    {   year,      month,      day,      "%b",       true,    align_month   },
-    {      0,          0,        0,      0,          true,    align_noalign },
+    {   day,   1*min,     10, "%H:%M",              false, align_noalign },
+    {   day,   2*min,     30, "%H:%M",              false, align_noalign },
+    {   day,   5*min,    min, "%H:%M",              false, align_noalign },
+    {   day,  10*min,    min, "%H:%M",              false, align_noalign },
+    {   day,  30*min, 10*min, "%H:%M",              false, align_noalign },
+    {   day,    hour, 10*min, "%H:%M",              false, align_noalign },
+    {   day,  2*hour, 30*min, "%H:%M",              false, align_noalign },
+    {   day,  3*hour,   hour, "%H:%M",              false, align_noalign },
+    {   day,  6*hour,   hour, "%H:%M",              false, align_noalign },
+    {   day, 12*hour, 3*hour, "%H:%M",              false, align_noalign },
+    {  week, 12*hour, 3*hour, "%a %H:%M",           false, align_noalign },
+    {  week,     day, 3*hour, "%a",                 true,  align_noalign },
+    {  week,   2*day, 6*hour, "%a",                 true,  align_noalign },
+    { month,     day, 6*hour, "%a %d",              true,  align_noalign },
+    { month,     day, 6*hour, "%d",                 true,  align_noalign },
+    {  year,    week,    day, I18N_NOOP("week %U"), true,  align_week    },
+    {  year,   month,    day, "%b",                 true,  align_month   },
+    {     0,       0,      0, 0,                    true,  align_noalign },
   };
 
   QPainter paint(&offscreen);

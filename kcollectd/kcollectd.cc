@@ -139,7 +139,8 @@ int main(int argc, char **argv)
 
   std::vector<std::string> rrds;
   
-  KCmdLineArgs::init(argc, argv, "Kcollectd", "kcollectd", "Blafasel", "0.1");
+  KCmdLineArgs::init(argc, argv, "kcollectd", i18n("KCollectd"), 
+	i18n("Viewer for Collectd-databases"), "0.1");
   KApplication a;
   KCollectdGui gui;
   
