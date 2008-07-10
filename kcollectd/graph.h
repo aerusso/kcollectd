@@ -98,8 +98,10 @@ public slots:
   void drawAll();
   void minmax();
   void drawHeader(const QRect &rect);
-  void drawXBaseGrid(QPainter &paint, const QRect &rect, 
+  void drawXBase(QPainter &paint, const QRect &rect, time_t off, 
 	time_t major, time_t minor, const char *format, bool center);
+  void drawXMonth(QPainter &paint, const QRect &rect);
+  void drawXYear(QPainter &paint, const QRect &rect);
   void drawXGrid(const QRect &rect);
   void drawYGrid(const QRect &rect, const Range &range, double base);
   void drawGraph(const QRect &rect, double min, double max);

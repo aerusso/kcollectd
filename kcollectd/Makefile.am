@@ -7,9 +7,8 @@ noinst_HEADERS = graph.h  gui.h
 # let automoc handle all of the meta source files (moc)
 METASOURCES = AUTO
 
-messages: rc.cpp
-	$(EXTRACTRC) `find . -name \*.ui -o -name \*.rc` > rc.cpp
-	$(XGETTEXT) *.cpp -o $(podir)/kcollectd.pot
+messages: *.cc *.h
+	$(XGETTEXT) *.cc *.h -o $(podir)/kcollectd.pot
 
 KDE_ICON = AUTO
 

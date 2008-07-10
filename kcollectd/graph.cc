@@ -285,12 +285,21 @@ void Graph::drawHeader(const QRect &rect)
 
   std::ostringstream os;
 
+  QString format;
+  time_t time_span = end - start;
+  if (time_span > 3600*24*356)
+    format = i18n("%Y-%m");
+  else if (time_span > 3600*24*31)
+    format = i18n("%A %Y-%m-%d");
+  else if (time_span > 3600*24)
+    format = i18n("%A %Y-%m-%d %H:%M");
+  else
+    format = i18n("%A %Y-%m-%d %H:%M:%S");
+
   char buffer[50];
-  strftime(buffer, sizeof(buffer)-1, 
-	i18n("%Y-%m-%d %H:%M:%S"), localtime(&start));
+  strftime(buffer, sizeof(buffer), format, localtime(&start));
   os << "from " << buffer << " to ";
-  strftime(buffer, sizeof(buffer)-1, 
-	i18n("%Y-%m-%d %H:%M:%S"), localtime(&end));
+  strftime(buffer, sizeof(buffer), format, localtime(&end));
   os << buffer;
   
   const QFontMetrics fontmetric(font);
@@ -299,8 +308,8 @@ void Graph::drawHeader(const QRect &rect)
 	fontmetric.ascent() + 2 , os.str());
 }
 
-void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect, 
-      time_t major, time_t minor, const char *format, bool center)
+void Graph::drawXBase(QPainter &paint, const QRect &rect, 
+      time_t off, time_t major, time_t minor, const char *format, bool center)
 {
   const QFontMetrics fontmetric(font);
   int label_y = rect.bottom() + 4 + fontmetric.ascent();
@@ -310,35 +319,142 @@ void Graph::drawXBaseGrid(QPainter &paint, const QRect &rect,
 
   // draw minor lines
   if(minor) {
-    time_t mmin = ((start + minor - tz_off) / minor) * minor + tz_off;
-    time_t mmax = ((end - tz_off) / minor) * minor + tz_off;
+    time_t mmin = ((start + minor - off) / minor) * minor + off;
     paint.setPen(QColor(80, 65, 34));
-    for(time_t i = mmin; i <= mmax; i += minor) {
+    for(time_t i = mmin; i <= end; i += minor) {
       paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
     }
   }
 
   // draw major lines
-  time_t min = ((start + major - tz_off) / major) * major + tz_off;
-  time_t max = ((end - tz_off) / major) * major + tz_off;
+  time_t min = ((start + major - off) / major) * major + off;
   paint.setPen(QColor(140, 115, 60));
-  for(time_t i = min; i <= max; i += major) {
+  for(time_t i = min; i <= end; i += major) {
     paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
   }
 
   // draw labels
   paint.setPen(QColor(0, 0, 0));
-  for(time_t i = min; i <= max; i += major) {
+  if (center)
+    min = ((start - off) / major) * major + off;
+  for(time_t i = min; i <= end; i += major) {
     char label[50];
-    if(strftime(label, sizeof(label), i18n(format), localtime(&i))) { 
-      if (center) {
-	paint.drawText(xmap(i + major / 2) - fontmetric.width(label) / 2, 
-	      label_y, label);
-      } else {
-	paint.drawText(xmap(i) - fontmetric.width(label) / 2, label_y, label);
-      } 
+    if(strftime(label, sizeof(label), i18n(format), localtime(&i))) {
+      const int width = fontmetric.width(label);
+      int x = center 
+	? xmap(i + major / 2) - width / 2
+	: xmap(i) - width / 2;
+	  
+      if (x > rect.left() && x + width < rect.right())
+	paint.drawText(x, label_y, label);
     }
   }
+}
+
+inline void next_month(struct tm &bt)
+{
+  ++bt.tm_mon;
+  if (bt.tm_mon == 12) {
+    bt.tm_mon = 0;
+    ++bt.tm_year;
+  }
+}
+
+void Graph::drawXMonth(QPainter &paint, const QRect &rect)
+{
+  const QFontMetrics fontmetric(font);
+  int label_y = rect.bottom() + 4 + fontmetric.ascent();
+  
+  // setting up linear mappings
+  const linMap xmap(start, rect.left(), end, rect.right());
+
+  struct tm bt = *localtime(&start);
+  bt.tm_sec = bt.tm_min = bt.tm_hour;
+  bt.tm_mday = 1;
+  
+  int i = mktime(&bt);
+  while (i <= end) {
+    // draw major lines
+    int x = xmap(i);
+    if (x > rect.left()) {
+      paint.setPen(QColor(140, 115, 60));
+      paint.drawLine(x, rect.top(), x, rect.bottom());
+    }
+    // draw labels
+    paint.setPen(QColor(0, 0, 0));
+    char label[50];
+    if(strftime(label, sizeof(label), "%b", &bt)) {
+      const int width = fontmetric.width(label);
+      x =  xmap(i + 3600*24*30 / 2) - width / 2;
+	  
+      if (x > rect.left() && x + width < rect.right())
+	paint.drawText(x, label_y, label);
+
+      next_month(bt);
+      i = mktime(&bt);
+    }
+  }
+}
+
+void Graph::drawXYear(QPainter &paint, const QRect &rect)
+{
+  const QFontMetrics fontmetric(font);
+  int label_y = rect.bottom() + 4 + fontmetric.ascent();
+  
+  // setting up linear mappings
+  const linMap xmap(start, rect.left(), end, rect.right());
+
+  // minor lines
+  struct tm bt = *localtime(&start);
+  bt.tm_sec = bt.tm_min = bt.tm_hour;
+  bt.tm_mday = 1;
+  
+  int i = mktime(&bt);
+  while (i <= end) {
+    int x = xmap(i);
+    if (x > rect.left()) {
+      paint.setPen(QColor(80, 65, 34));
+      paint.drawLine(x, rect.top(), x, rect.bottom());
+    }
+    next_month(bt);
+    i = mktime(&bt);
+  }
+    
+  bt = *localtime(&start);
+  bt.tm_sec = bt.tm_min = bt.tm_hour;
+  bt.tm_mday = 1;
+  bt.tm_mon = 0;
+  i = mktime(&bt);
+  while (i <= end) {
+    // draw major lines
+    int x = xmap(i);
+    if (x > rect.left()) {
+      paint.setPen(QColor(140, 115, 60));
+      paint.drawLine(x, rect.top(), x, rect.bottom());
+    }
+    // draw labels
+    paint.setPen(QColor(0, 0, 0));
+    char label[50];
+    if(strftime(label, sizeof(label), "%b", &bt)) {
+      const int width = fontmetric.width(label);
+      x =  xmap(i + 3600*24*30 / 2) - width / 2;
+	  
+      if (x > rect.left() && x + width < rect.right())
+	paint.drawText(x, label_y, label);
+
+      ++bt.tm_year;
+      i = mktime(&bt);
+    }
+  }
+}
+
+static time_t week_align()
+{
+  time_t w = 7*24*3600;
+  struct tm bt = *localtime(&w);
+  bt.tm_sec = bt.tm_min = bt.tm_hour;
+  bt.tm_mday -= bt.tm_wday - 1;
+  return mktime(&bt);
 }
 
 void Graph::drawXGrid(const QRect &rect)
@@ -349,58 +465,71 @@ void Graph::drawXGrid(const QRect &rect)
   const time_t week = 7*day;
   const time_t month = 31*day;
   const time_t year = 365*day;
-
+  
+  enum bla { align_noalign, align_week, align_month };
   struct {
     time_t maxspan;
     time_t major;
     time_t minor;
     const char *format;
     bool center;
+    bla align;
   } axe_params[] = {
-    {    day,      1*min,       10,      "%H:%M",    false  },
-    {    day,      2*min,       30,      "%H:%M",    false  },
-    {    day,      5*min,      min,      "%H:%M",    false  },
-    {    day,     10*min,      min,      "%H:%M",    false  },
-    {    day,     30*min,   10*min,      "%H:%M",    false  },
-    {    day,       hour,   10*min,      "%H:%M",    false  },
-    {    day,     2*hour,   30*min,      "%H:%M",    false  },
-    {    day,     3*hour,     hour,      "%H:%M",    false  },
-    {    day,     6*hour,     hour,      "%H:%M",    false  },
-    {    day,    12*hour,   3*hour,      "%H:%M",    false  },
-    {   week,    12*hour,   3*hour,      "%a %H:%M", false  },
-    {   week,        day,   3*hour,      "%a",       true   },
-    {   week,      2*day,   6*hour,      "%a",       true   },
-    {  month,        day,        0,      "%a %d",    true   },
-    {  month,        day,        0,      "%d",       true   },
-    {      0,          0,        0,      0,          false  }
+    {    day,      1*min,       10,      "%H:%M",    false,   align_noalign },
+    {    day,      2*min,       30,      "%H:%M",    false,   align_noalign },
+    {    day,      5*min,      min,      "%H:%M",    false,   align_noalign },
+    {    day,     10*min,      min,      "%H:%M",    false,   align_noalign },
+    {    day,     30*min,   10*min,      "%H:%M",    false,   align_noalign },
+    {    day,       hour,   10*min,      "%H:%M",    false,   align_noalign },
+    {    day,     2*hour,   30*min,      "%H:%M",    false,   align_noalign },
+    {    day,     3*hour,     hour,      "%H:%M",    false,   align_noalign },
+    {    day,     6*hour,     hour,      "%H:%M",    false,   align_noalign },
+    {    day,    12*hour,   3*hour,      "%H:%M",    false,   align_noalign },
+    {   week,    12*hour,   3*hour,      "%a %H:%M", false,   align_noalign },
+    {   week,        day,   3*hour,      "%a",       true,    align_noalign },
+    {   week,      2*day,   6*hour,      "%a",       true,    align_noalign },
+    {  month,        day,   6*hour,      "%a %d",    true,    align_noalign },
+    {  month,        day,   6*hour,      "%d",       true,    align_noalign },
+    {   year,       week,      day,      "week %U",  true,    align_week    },
+    {   year,      month,      day,      "%b",       true,    align_month   },
+    {      0,          0,        0,      0,          true,    align_noalign },
   };
 
   QPainter paint(&offscreen);
   const QFontMetrics fontmetric(font);
 
-  time_t time_span = end-start;
+  const time_t time_span = end-start;
   
-  if (time_span < month) {
-    for(int i=0; axe_params[i].maxspan; ++i) {
-      if ((end-start) < axe_params[i].maxspan) {
-	char label[50];
-	time_t now = time(0);
-	if(strftime(label, sizeof(label), axe_params[i].format, gmtime(&now))) {
-	  const int textwidth = fontmetric.width(label) 
-	    * (end-start)/axe_params[i].major * 3 / 2;
-	  if (textwidth < rect.width()) {
-	    drawXBaseGrid(paint, rect, 
+  for(int i=0; axe_params[i].maxspan; ++i) {
+    if (time_span < axe_params[i].maxspan) {
+      char label[50];
+      time_t now = time(0);
+      if(strftime(label, sizeof(label), axe_params[i].format, 
+		  localtime(&now))) {
+	const int textwidth = fontmetric.width(label) 
+	  * time_span / axe_params[i].major * 3 / 2;
+	if (textwidth < rect.width()) {
+	  switch(axe_params[i].align) {
+	  case align_noalign:
+	    drawXBase(paint, rect, tz_off, 
 		  axe_params[i].major, axe_params[i].minor, 
 		  axe_params[i].format, axe_params[i].center);
 	    break;
+	  case align_week: 
+	    drawXBase(paint, rect, week_align(), 
+		  axe_params[i].major, axe_params[i].minor, 
+		  axe_params[i].format, axe_params[i].center);	    
+	    break;
+	  case align_month:
+	    drawXMonth(paint, rect); 
+	    break;
 	  }
+	  return;
 	}
       }
     }
-  } else if (time_span < 6*month) {
-  } else if (time_span < year) {
-  } else {
   }
+  drawXBase(paint, rect, tz_off, year, month, "%Y", true);
 }
 
 void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
