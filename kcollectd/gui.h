@@ -48,7 +48,6 @@ public slots:
 public:
   KListView *listview;
   Graph *graph;
-  QLabel *label;
 };
 
 #endif

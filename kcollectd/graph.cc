@@ -41,6 +41,29 @@
 // definition of NaN in Y_Range
 const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
 
+/*
+ * strftime already is localized
+ */
+static QString Qstrftime(const char *format, const tm *t)
+{
+  char buffer[50];
+  if(strftime(buffer, sizeof(buffer), format, t))
+    return QString::fromLocal8Bit(buffer);
+  else
+    return QString();
+}
+
+/*
+ * generate a time_t that is monday 00:00 anywhere
+ */
+static time_t week_align()
+{
+  time_t w = 7*24*3600;
+  struct tm bt = *localtime(&w);
+  bt.tm_sec = bt.tm_min = bt.tm_hour;
+  bt.tm_mday -= bt.tm_wday - 1;
+  return mktime(&bt);
+}
 
 /**
  *
@@ -118,6 +141,11 @@ bool Graph::fetchAllData (void)
   return (true);
 }
 
+/**
+ * set up graph-widget with a rrd-file and a datasource.
+ *
+ * optionally a label/name for the Graph can be given.
+ */
 void Graph::setup(const char *filei, const char *dsi, const char *labeli)
 {
   data_is_valid = false;
@@ -134,6 +162,10 @@ void Graph::setup(const char *filei, const char *dsi, const char *labeli)
 
   drawAll();
 }
+
+/**
+ * determine min and max values for a graph and save it into y_range
+ */
 
 void Graph::minmax()
 {
@@ -189,6 +221,11 @@ void Graph::minmax()
 void Graph::drawHeader(const QRect &rect)
 {
   QPainter paint(&offscreen);
+  const QFontMetrics fontmetric(font);
+
+  // header
+  paint.drawText((rect.left()+rect.right())/2-fontmetric.width(name)/2, 
+	header_y, name);
 
   QString format;
   time_t time_span = end - start;
@@ -201,24 +238,21 @@ void Graph::drawHeader(const QRect &rect)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  char buffer_from[50], buffer_to[50];
-  strftime(buffer_from, sizeof(buffer_from), format, localtime(&start));
-  strftime(buffer_to, sizeof(buffer_to), format, localtime(&end));
+  QString buffer_from = Qstrftime(format, localtime(&start));
+  QString buffer_to = Qstrftime(format, localtime(&end));
   QString label = QString(i18n("from %1 to %2"))
     .arg(buffer_from)
     .arg(buffer_to);
   
-  const QFontMetrics fontmetric(font);
   fontmetric.width(label);
   paint.drawText((rect.left()+rect.right())/2-fontmetric.width(label)/2, 
-	fontmetric.ascent() + 2 , label);
+	label_y2, label);
 }
 
 void Graph::drawXBase(QPainter &paint, const QRect &rect, 
       time_t off, time_t major, time_t minor, const char *format, bool center)
 {
   const QFontMetrics fontmetric(font);
-  int label_y = rect.bottom() + 4 + fontmetric.ascent();
   
   // setting up linear mappings
   const linMap xmap(start, rect.left(), end, rect.right());
@@ -244,15 +278,15 @@ void Graph::drawXBase(QPainter &paint, const QRect &rect,
   if (center)
     min = ((start - off) / major) * major + off;
   for(time_t i = min; i <= end; i += major) {
-    char label[50];
-    if(strftime(label, sizeof(label), i18n(format), localtime(&i))) {
+    char buffer[50];
+    if(QString label = Qstrftime(i18n(format), localtime(&i))) {
       const int width = fontmetric.width(label);
       int x = center 
 	? xmap(i + major / 2) - width / 2
 	: xmap(i) - width / 2;
 	  
       if (x > rect.left() && x + width < rect.right())
-	paint.drawText(x, label_y, label);
+	paint.drawText(x, label_y1, label);
     }
   }
 }
@@ -269,7 +303,6 @@ inline static void next_month(struct tm &bt)
 void Graph::drawXMonth(QPainter &paint, const QRect &rect)
 {
   const QFontMetrics fontmetric(font);
-  int label_y = rect.bottom() + 4 + fontmetric.ascent();
   
   // setting up linear mappings
   const linMap xmap(start, rect.left(), end, rect.right());
@@ -288,13 +321,12 @@ void Graph::drawXMonth(QPainter &paint, const QRect &rect)
     }
     // draw labels
     paint.setPen(KGlobalSettings::textColor());
-    char label[50];
-    if(strftime(label, sizeof(label), "%b", &bt)) {
+    if(QString label = Qstrftime("%b", &bt)) {
       const int width = fontmetric.width(label);
       x =  xmap(i + 3600*24*30 / 2) - width / 2;
 	  
       if (x > rect.left() && x + width < rect.right())
-	paint.drawText(x, label_y, label);
+	paint.drawText(x, label_y1, label);
 
       next_month(bt);
       i = mktime(&bt);
@@ -305,7 +337,6 @@ void Graph::drawXMonth(QPainter &paint, const QRect &rect)
 void Graph::drawXYear(QPainter &paint, const QRect &rect)
 {
   const QFontMetrics fontmetric(font);
-  int label_y = rect.bottom() + 4 + fontmetric.ascent();
   
   // setting up linear mappings
   const linMap xmap(start, rect.left(), end, rect.right());
@@ -340,27 +371,17 @@ void Graph::drawXYear(QPainter &paint, const QRect &rect)
     }
     // draw labels
     paint.setPen(KGlobalSettings::textColor());
-    char label[50];
-    if(strftime(label, sizeof(label), "%b", &bt)) {
+    if(QString label = Qstrftime("%Y", &bt)) {
       const int width = fontmetric.width(label);
-      x =  xmap(i + 3600*24*30 / 2) - width / 2;
+      x =  xmap(i + 3600*24*365 / 2) - width / 2;
 	  
       if (x > rect.left() && x + width < rect.right())
-	paint.drawText(x, label_y, label);
+	paint.drawText(x, label_y1, label);
 
       ++bt.tm_year;
       i = mktime(&bt);
     }
   }
-}
-
-static time_t week_align()
-{
-  time_t w = 7*24*3600;
-  struct tm bt = *localtime(&w);
-  bt.tm_sec = bt.tm_min = bt.tm_hour;
-  bt.tm_mday -= bt.tm_wday - 1;
-  return mktime(&bt);
 }
 
 void Graph::drawXGrid(const QRect &rect)
@@ -372,7 +393,7 @@ void Graph::drawXGrid(const QRect &rect)
   const time_t month = 31*day;
   const time_t year = 365*day;
   
-  enum bla { align_noalign, align_week, align_month };
+  enum bla { align_tzalign, align_week, align_month };
   struct {
     time_t maxspan;
     time_t major;
@@ -381,24 +402,24 @@ void Graph::drawXGrid(const QRect &rect)
     bool center;
     bla align;
   } axe_params[] = {
-    {   day,   1*min,     10, "%H:%M",              false, align_noalign },
-    {   day,   2*min,     30, "%H:%M",              false, align_noalign },
-    {   day,   5*min,    min, "%H:%M",              false, align_noalign },
-    {   day,  10*min,    min, "%H:%M",              false, align_noalign },
-    {   day,  30*min, 10*min, "%H:%M",              false, align_noalign },
-    {   day,    hour, 10*min, "%H:%M",              false, align_noalign },
-    {   day,  2*hour, 30*min, "%H:%M",              false, align_noalign },
-    {   day,  3*hour,   hour, "%H:%M",              false, align_noalign },
-    {   day,  6*hour,   hour, "%H:%M",              false, align_noalign },
-    {   day, 12*hour, 3*hour, "%H:%M",              false, align_noalign },
-    {  week, 12*hour, 3*hour, "%a %H:%M",           false, align_noalign },
-    {  week,     day, 3*hour, "%a",                 true,  align_noalign },
-    {  week,   2*day, 6*hour, "%a",                 true,  align_noalign },
-    { month,     day, 6*hour, "%a %d",              true,  align_noalign },
-    { month,     day, 6*hour, "%d",                 true,  align_noalign },
+    {   day,   1*min,     10, "%H:%M",              false, align_tzalign },
+    {   day,   2*min,     30, "%H:%M",              false, align_tzalign },
+    {   day,   5*min,    min, "%H:%M",              false, align_tzalign },
+    {   day,  10*min,    min, "%H:%M",              false, align_tzalign },
+    {   day,  30*min, 10*min, "%H:%M",              false, align_tzalign },
+    {   day,    hour, 10*min, "%H:%M",              false, align_tzalign },
+    {   day,  2*hour, 30*min, "%H:%M",              false, align_tzalign },
+    {   day,  3*hour,   hour, "%H:%M",              false, align_tzalign },
+    {   day,  6*hour,   hour, "%H:%M",              false, align_tzalign },
+    {   day, 12*hour, 3*hour, "%H:%M",              false, align_tzalign },
+    {  week, 12*hour, 3*hour, "%a %H:%M",           false, align_tzalign },
+    {  week,     day, 3*hour, "%a",                 true,  align_tzalign },
+    {  week,   2*day, 6*hour, "%a",                 true,  align_tzalign },
+    { month,     day, 6*hour, "%a %d",              true,  align_tzalign },
+    { month,     day, 6*hour, "%d",                 true,  align_tzalign },
     {  year,    week,    day, I18N_NOOP("week %U"), true,  align_week    },
     {  year,   month,    day, "%b",                 true,  align_month   },
-    {     0,       0,      0, 0,                    true,  align_noalign },
+    {     0,       0,      0, 0,                    true,  align_tzalign },
   };
 
   QPainter paint(&offscreen);
@@ -408,15 +429,13 @@ void Graph::drawXGrid(const QRect &rect)
   
   for(int i=0; axe_params[i].maxspan; ++i) {
     if (time_span < axe_params[i].maxspan) {
-      char label[50];
       time_t now = time(0);
-      if(strftime(label, sizeof(label), axe_params[i].format, 
-		  localtime(&now))) {
+      if(QString label = Qstrftime(axe_params[i].format, localtime(&now))) {
 	const int textwidth = fontmetric.width(label) 
 	  * time_span / axe_params[i].major * 3 / 2;
 	if (textwidth < rect.width()) {
 	  switch(axe_params[i].align) {
-	  case align_noalign:
+	  case align_tzalign:
 	    drawXBase(paint, rect, tz_off, 
 		  axe_params[i].major, axe_params[i].minor, 
 		  axe_params[i].format, axe_params[i].center);
@@ -435,7 +454,7 @@ void Graph::drawXGrid(const QRect &rect)
       }
     }
   }
-  drawXBase(paint, rect, tz_off, year, month, "%Y", true);
+  drawXYear(paint, rect);
 }
 
 void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
@@ -487,6 +506,9 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
   }
 }
 
+/**
+ * draw the graph itself
+ */
 void Graph::drawGraph(const QRect &rect, double min, double max)
 {
   QPainter paint(&offscreen);
@@ -543,6 +565,11 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
   paint.end();
 }
 
+/**
+ * draw the widgets contents.
+ *
+ * this covers a grid, the graph istself, x- and y-label and a header
+ */
 void Graph::drawAll()
 {
   if (!data_is_valid)
@@ -555,17 +582,24 @@ void Graph::drawAll()
   QPainter paint(&offscreen);
   paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
 
-  // margins
+  // margin calculations
+  // place for labels at the left and two line labels below
   const QFontMetrics fontmetric(font);
   const int labelheight = fontmetric.lineSpacing();
   const int labelwidth = fontmetric.boundingRect("888.888 M").width();
+  const int marg = 4; // distance between labels and graph
 
   // size of actual graph and draw
-  // place for labels at the left and two line labels below
-  const int marg = 4; // distance between labels and graph
-  graphrect.setRect(labelwidth+marg, labelheight+marg, 
-	contentsRect().width()-labelwidth-marg, 
-	contentsRect().height()-3*labelheight-2*marg);
+  graphrect.setRect(
+	contentsRect().left() + labelwidth + marg, 
+	contentsRect().top() + labelheight + marg, 
+	contentsRect().width()-labelwidth - marg,
+	contentsRect().height() - 3 * labelheight - 2 * marg);
+
+  // positions of labels and headers
+  header_y = contentsRect().top() + 2 + fontmetric.ascent();
+  label_y1 = graphrect.bottom() + 2 + fontmetric.ascent();
+  label_y2 = label_y1 + labelheight;
 
   // auto y-scale
   minmax();
@@ -585,12 +619,18 @@ void Graph::drawAll()
   QPainter(this).drawPixmap(contentsRect(), offscreen);
 }
 
+/**
+ * Qt (re)paint event
+ */
 void Graph::paintEvent(QPaintEvent *e)
 {
   QFrame::paintEvent(e);
   drawAll();
 }
 
+/**
+ * Qt mouse-press-event
+ */
 void Graph::mousePressEvent(QMouseEvent *e)
 {
   origin_x = e->x ();
@@ -608,6 +648,11 @@ void Graph::mouseDoubleClickEvent(QMouseEvent *)
 {
 }
 
+/**
+ * Qt mouse-event
+ *
+ * handle dragging of mouse in graph
+ */
 void Graph::mouseMoveEvent(QMouseEvent *e)
 {
   if (e->state() != LeftButton && e->state() != MidButton) {
@@ -635,12 +680,28 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
   drawAll();
 }
 
+/**
+ * set the graph to display the last new_span seconds
+ */
+void Graph::last(time_t new_span)
+{
+  end = time(0);
+  span = new_span;
+  start = end - span;
+  data_is_valid = false;
+  drawAll();
+}
+
+/**
+ * zoom graph with factor
+ */
 void Graph::zoom(double factor)
 {
   // don't zoom to wide
-  if (span*factor < width()) return;
+  if (factor < 1 && span*factor < width()) return;
 
   time_t time_center = end - span / 2;  
+  if (time_center < 0) return;
   span *= factor;
   end = time_center + (span / 2);
 

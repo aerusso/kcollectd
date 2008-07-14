@@ -82,6 +82,7 @@ class Graph : public QFrame
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
 
+  virtual void last(time_t span);
   virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
   virtual void mouseReleaseEvent(QMouseEvent *e);
@@ -90,6 +91,10 @@ class Graph : public QFrame
   virtual void wheelEvent(QWheelEvent *e);
  
 public slots:
+  virtual void last_month();
+  virtual void last_week();
+  virtual void last_day();
+  virtual void last_hour();
   virtual void zoomIn();
   virtual void zoomOut();
 
@@ -128,9 +133,30 @@ public slots:
   QFont font;
   QPixmap offscreen;
   QRect graphrect;
+  int header_y, label_y1, label_y2;
   QColor color_major, color_minor, color_graph_bg;
   QColor color_minmax, color_line;
 };
+
+inline void Graph::last_month()
+{
+  last(3600*24*31);
+}
+
+inline void Graph::last_week()
+{
+  last(3600*24*7);
+}
+
+inline void Graph::last_day()
+{
+  last(3600*24);
+}
+
+inline void Graph::last_hour()
+{
+  last(3600);
+}
 
 inline void Graph::zoomIn()
 {
