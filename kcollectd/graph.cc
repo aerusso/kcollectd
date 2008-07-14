@@ -47,7 +47,9 @@ const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
  */
 Graph::Graph(QWidget *parent, const char *name) :
   QFrame(parent, name), data_is_valid(false), 
-  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont())
+  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont()),
+  color_major(140, 115, 60), color_minor(80, 65, 34), color_graph_bg(0, 0, 0),
+  color_minmax(0, 100, 0), color_line(0, 255, 0)
 {
   setFrameStyle(QFrame::GroupBoxPanel|QFrame::Plain);
   setMinimumWidth(300);
@@ -63,7 +65,9 @@ Graph::Graph(QWidget *parent, const char *name) :
 Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
       const char *name) :
   QFrame(parent, name), file(rrd), ds(dsi), data_is_valid(false), 
-  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont())
+  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont()),
+  color_major(140, 115, 60), color_minor(80, 65, 34), color_graph_bg(0, 0, 0),
+  color_minmax(0, 100, 0), color_line(0, 255, 0)
 {
   setFrameStyle(QFrame::StyledPanel|QFrame::Plain);
   setMinimumWidth(300);
@@ -114,7 +118,7 @@ bool Graph::fetchAllData (void)
   return (true);
 }
 
-void Graph::setup(const char *filei, const char *dsi)
+void Graph::setup(const char *filei, const char *dsi, const char *labeli)
 {
   data_is_valid = false;
   avg_data.clear();
@@ -123,6 +127,10 @@ void Graph::setup(const char *filei, const char *dsi)
 
   file = filei;
   ds = dsi;
+  if (labeli)
+    name = labeli;
+  else
+    name.clear();
 
   drawAll();
 }
@@ -218,7 +226,7 @@ void Graph::drawXBase(QPainter &paint, const QRect &rect,
   // draw minor lines
   if(minor) {
     time_t mmin = ((start + minor - off) / minor) * minor + off;
-    paint.setPen(QColor(80, 65, 34));
+    paint.setPen(color_minor);
     for(time_t i = mmin; i <= end; i += minor) {
       paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
     }
@@ -226,13 +234,13 @@ void Graph::drawXBase(QPainter &paint, const QRect &rect,
 
   // draw major lines
   time_t min = ((start + major - off) / major) * major + off;
-  paint.setPen(QColor(140, 115, 60));
+  paint.setPen(color_major);
   for(time_t i = min; i <= end; i += major) {
     paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
   }
 
   // draw labels
-  paint.setPen(QColor(0, 0, 0));
+  paint.setPen(KGlobalSettings::textColor());
   if (center)
     min = ((start - off) / major) * major + off;
   for(time_t i = min; i <= end; i += major) {
@@ -275,11 +283,11 @@ void Graph::drawXMonth(QPainter &paint, const QRect &rect)
     // draw major lines
     int x = xmap(i);
     if (x > rect.left()) {
-      paint.setPen(QColor(140, 115, 60));
+      paint.setPen(color_major);
       paint.drawLine(x, rect.top(), x, rect.bottom());
     }
     // draw labels
-    paint.setPen(QColor(0, 0, 0));
+    paint.setPen(KGlobalSettings::textColor());
     char label[50];
     if(strftime(label, sizeof(label), "%b", &bt)) {
       const int width = fontmetric.width(label);
@@ -311,7 +319,7 @@ void Graph::drawXYear(QPainter &paint, const QRect &rect)
   while (i <= end) {
     int x = xmap(i);
     if (x > rect.left()) {
-      paint.setPen(QColor(80, 65, 34));
+      paint.setPen(color_minor);
       paint.drawLine(x, rect.top(), x, rect.bottom());
     }
     next_month(bt);
@@ -327,11 +335,11 @@ void Graph::drawXYear(QPainter &paint, const QRect &rect)
     // draw major lines
     int x = xmap(i);
     if (x > rect.left()) {
-      paint.setPen(QColor(140, 115, 60));
+      paint.setPen(color_major);
       paint.drawLine(x, rect.top(), x, rect.bottom());
     }
     // draw labels
-    paint.setPen(QColor(0, 0, 0));
+    paint.setPen(KGlobalSettings::textColor());
     char label[50];
     if(strftime(label, sizeof(label), "%b", &bt)) {
       const int width = fontmetric.width(label);
@@ -454,7 +462,7 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
   }
 
   // minor lines
-  paint.setPen(QColor(80, 65, 34));
+  paint.setPen(color_minor);
   double minbase = base/10;
   if (minbase * -ymap.m() < 5) minbase = base/5;
   if (minbase * -ymap.m() < 5) minbase = base/2;
@@ -467,7 +475,7 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
   }
 
   // major lines
-  paint.setPen(QColor(140, 115, 60));
+  paint.setPen(color_major);
   if (base * -ymap.m() < 5) base = base/5;
   if (base * -ymap.m() < 5) base = base/2;
   if (base * -ymap.m() > 5) {
@@ -497,9 +505,8 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
 
   // draw min/max backshadow
   if (!min_data.empty() && !max_data.empty()) {  
-    const QColor rc(0, 100, 0);
-    paint.setPen(rc);
-    paint.setBrush(QBrush(rc));
+    paint.setPen(color_minmax);
+    paint.setBrush(QBrush(color_minmax));
     for(int i=0; i<size; ++i) {
       while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
       int l = i;
@@ -520,7 +527,7 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
 
   // draw average
   if (!avg_data.empty()) {
-    paint.setPen(Qt::green);
+    paint.setPen(color_line);
     for(int i=0; i<size; ++i) {
       while (i<size && isnan(avg_data[i])) ++i;
       int l = i;
@@ -566,7 +573,7 @@ void Graph::drawAll()
     return;
 
   // black graph-background
-  paint.fillRect(graphrect, Qt::black);
+  paint.fillRect(graphrect, color_graph_bg);
 
   drawHeader(graphrect);
   drawYGrid(graphrect, y_range, base);

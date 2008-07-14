@@ -70,7 +70,7 @@ KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
 void KCollectdGui::selectionChanged(QListViewItem * item)
 {
   if (item && item->text(1)) {
-    graph->setup(item->text(2), item->text(0));
+    graph->setup(item->text(2), item->text(0), item->text(1));
     label->setText(QString(item->text(1)));
     graph->update();
   }

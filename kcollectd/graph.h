@@ -77,7 +77,7 @@ class Graph : public QFrame
   Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
 	const char *name=0);
 
-  void setup(const char *rrd, const char *ds);
+  void setup(const char *rrd, const char *ds, const char* label = 0);
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -110,6 +110,7 @@ public slots:
   std::vector<double> avg_data, min_data, max_data;
   std::string file;
   std::string ds;
+  std::string name;
   bool data_is_valid;
   time_t start;	// real start of data (from rrd_fetch)
   time_t end;	// real end of data (from rrd_fetch)
@@ -127,6 +128,8 @@ public slots:
   QFont font;
   QPixmap offscreen;
   QRect graphrect;
+  QColor color_major, color_minor, color_graph_bg;
+  QColor color_minmax, color_line;
 };
 
 inline void Graph::zoomIn()

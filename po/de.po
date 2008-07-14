@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-10 22:28+0200\n"
-"PO-Revision-Date: 2008-07-10 22:29+0200\n"
+"PO-Revision-Date: 2008-07-14 20:21+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
 "Language-Team:  <de@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -21,15 +21,15 @@ msgstr "%m %Y"
 
 #: graph.cc:291
 msgid "%A %Y-%m-%d"
-msgstr "%A, %d. %m %Y"
+msgstr "%A, %d. %B %Y"
 
 #: graph.cc:293
 msgid "%A %Y-%m-%d %H:%M"
-msgstr "%A, %d. %m %Y %H:%M"
+msgstr "%A, %d. %B %Y %H:%M"
 
 #: graph.cc:295
 msgid "%A %Y-%m-%d %H:%M:%S"
-msgstr "%A, %d. %m %Y %H:%M"
+msgstr "%A, %d. %B %Y %H:%M;%S"
 
 #: graph.cc:300
 msgid "from %1 to %2"
