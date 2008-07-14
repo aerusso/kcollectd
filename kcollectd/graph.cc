@@ -26,10 +26,6 @@
 #include <vector>
 #include <cmath>
 #include <limits>
-#include <sstream>
-#include <iomanip>
-
-#include <rrd.h>
 
 #include <qpainter.h>
 #include <qpointarray.h>
@@ -38,114 +34,20 @@
 #include <kglobalsettings.h>
 #include <klocale.h>
 
+#include "rrd_interface.h"
+#include "labeling.h"
 #include "graph.moc"
 
 // definition of NaN in Y_Range
 const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
 
 
-static void get_rrd_data (const std::string &file, const std::string &ds, 
-      time_t *start, time_t *end, unsigned long *step, const char *type, 
-      std::vector<double> *result)
-{
-  int argc = 9;
-  char *argv[argc];
-  unsigned long ds_cnt = 0;
-  char **ds_name;
-  rrd_value_t *data;
-  char buffer[64];
-  int status;
-
-  argv[0] = strdup("fetch");
-  argv[1] = strdup("--start");
-  sprintf(buffer, "%ld", *start);
-  argv[2] = strdup(buffer);
-  argv[3] = strdup("--end");
-  sprintf(buffer, "%ld", *end);
-  argv[4] = strdup(buffer);
-  argv[5] = strdup("--resolution");
-  sprintf(buffer, "%ld", *step);
-  argv[6] = strdup(buffer);
-  argv[7] = strdup(file.c_str());
-  argv[8] = strdup(type);
-  
-  status = rrd_fetch(argc, argv, start, end, step, &ds_cnt, &ds_name, &data);
-  if (status != 0) {
-    std::cerr << "get_rrd_data: rrd_fetch failed.\n";
-    return;
-  }
-
-  result->clear();
-
-  const unsigned long length = (*end - *start) / *step;
-
-  for(unsigned int i=0; i<ds_cnt; ++i) {
-    if (ds != ds_name[i])
-      continue;
-    
-    for (unsigned int n = 0; n < length; ++n) 
-      result->push_back (data[n * ds_cnt + i]);
-    break;
-  }
-
-  for(int i=0; i<argc; ++i) 
-    free(argv[i]);
-}
-
-static bool si_char(double d, std::string &s, double &m)
-{
-  const struct {
-    double factor;
-    const char *si_char;
-  } si_table[] = {
-    { 1e-18, "a" },
-    { 1e-15, "f" },
-    { 1e-12, "p" },
-    { 1e-9,  "n" },
-    { 1e-6,  "µ" },
-    { 1e-3,  "m" },
-    { 1,     ""  },
-    { 1e3,   "k" },
-    { 1e6,   "M" },
-    { 1e9,   "G" },
-    { 1e12,  "T" },
-    { 1e15,  "P" },
-    { 1e18,  "E" },
-    { 1e21,  0   },
-  };
-  const int tablesize = sizeof(si_table)/sizeof(*si_table);
-
-  int i;
-  for(i=0; i < tablesize; ++i) {
-    if (d < si_table[i].factor) break;
-  }
-  if (i == 0 || i == tablesize) {
-    m = 1.0;
-    s = "";
-    return false;
-  } else {
-    --i;
-    m = si_table[i].factor;
-    s = si_table[i].si_char;
-    return true;
-  }
-}
-
-static std::string si_number(double d, int p, const std::string &s, double m)
-{
-  std::ostringstream os;
-  os << std::setprecision(p) << d/m;
-  if (!s.empty())
-    os << " " << s;
-  return os.str();
-}
-
 /**
  *
  */
 Graph::Graph(QWidget *parent, const char *name) :
   QFrame(parent, name), data_is_valid(false), 
-  end(time(0)), span(3600*48), step(1), font(KGlobalSettings::generalFont())
+  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont())
 {
   setFrameStyle(QFrame::GroupBoxPanel|QFrame::Plain);
   setMinimumWidth(300);
@@ -161,7 +63,7 @@ Graph::Graph(QWidget *parent, const char *name) :
 Graph::Graph(QWidget *parent, const std::string &rrd, const std::string &dsi,
       const char *name) :
   QFrame(parent, name), file(rrd), ds(dsi), data_is_valid(false), 
-  end(time(0)), span(3600*48), step(1), font(KGlobalSettings::generalFont())
+  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont())
 {
   setFrameStyle(QFrame::StyledPanel|QFrame::Plain);
   setMinimumWidth(300);
@@ -218,9 +120,6 @@ void Graph::setup(const char *filei, const char *dsi)
   avg_data.clear();
   min_data.clear();
   max_data.clear();
-
-  end = time(0);
-  span = 86400;
 
   file = filei;
   ds = dsi;
@@ -350,7 +249,7 @@ void Graph::drawXBase(QPainter &paint, const QRect &rect,
   }
 }
 
-inline void next_month(struct tm &bt)
+inline static void next_month(struct tm &bt)
 {
   ++bt.tm_mon;
   if (bt.tm_mon == 12) {
@@ -676,7 +575,7 @@ void Graph::drawAll()
   drawGraph(graphrect, y_range.min(), y_range.max());
 
   // copy to screen
-  bitBlt(this, contentsRect().left(), contentsRect().top(), &offscreen, 0, 0);
+  QPainter(this).drawPixmap(contentsRect(), offscreen);
 }
 
 void Graph::paintEvent(QPaintEvent *e)
@@ -731,6 +630,9 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
 
 void Graph::zoom(double factor)
 {
+  // don't zoom to wide
+  if (span*factor < width()) return;
+
   time_t time_center = end - span / 2;  
   span *= factor;
   end = time_center + (span / 2);

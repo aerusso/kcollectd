@@ -2,7 +2,7 @@
 INCLUDES = $(all_includes)
 
 # these are the headers for your project
-noinst_HEADERS = graph.h  gui.h
+noinst_HEADERS = graph.h gui.h rrd_interface.h labeling.h
 
 # let automoc handle all of the meta source files (moc)
 METASOURCES = AUTO
@@ -20,7 +20,7 @@ KDE_ICON = AUTO
 bin_PROGRAMS = kcollectd
 
 # the application source, library search path, and link libraries
-kcollectd_SOURCES = graph.cc  gui.cc  kcollectd.cc
+kcollectd_SOURCES = graph.cc gui.cc kcollectd.cc rrd_interface.cc labeling.cc
 kcollectd_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 kcollectd_LDADD = $(LIB_KDEUI) -lboost_filesystem -lrrd
 

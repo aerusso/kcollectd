@@ -34,60 +34,13 @@
 #include <kmessagebox.h>
 #include <klocale.h>
 
+#include "rrd_interface.h"
 #include "gui.h"
+
 
 #ifndef RRD_BASEDIR
 # define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
-
-class bad_rrdinfo : public std::exception
-{
-public:
-  virtual const char* what() const throw()
-  {
-    return i18n("calling rrdinfo failed.");
-  }
-};
-
-/*
- * read the datasources-names of a rrd from “rrdtools info”, because
- * there is no official API to get them
- */
-void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
-{
-  using namespace std;
-
-  // just to be sure
-  list.clear();
-
-  // call rrdtool info <filename>
-  string command("rrdtool info ");
-  command += rrdfile;
-  FILE *in = popen(command.c_str(), "r");
-  if (!in) {
-    throw bad_rrdinfo();
-  } 
-
-  // read in the output and find ds[...] lines
-  int c;
-  string line;
-  line.reserve(128);
-  while((c = getc(in)) != EOF) {
-    if (c == '\n') {
-      if (!line.compare(0, 3, "ds[")) {
-	string::size_type close = line.find(']');
-	if (close != string::npos)
-	  list.insert(line.substr(3, close-3));
-      }
-      line.clear();
-    } else {
-      line += static_cast<char>(c);
-   }
-  }
-  if (pclose(in)) {
-    throw bad_rrdinfo();
-  }
-}
 
 void get_datasources(const std::string &rrdfile, const std::string &info,
       KListViewItem *item)
