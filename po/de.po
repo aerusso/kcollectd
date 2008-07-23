@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-14 21:39+0200\n"
-"PO-Revision-Date: 2008-07-14 21:50+0200\n"
+"POT-Creation-Date: 2008-07-23 23:07+0200\n"
+"PO-Revision-Date: 2008-07-23 23:07+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
 "Language-Team:  <de@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -31,13 +31,13 @@ msgstr "%A, %d. %B %Y %H:%M"
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr "%A, %d. %B %Y %H:%M:%S"
 
-#: graph.cc:221
+#: graph.cc:220
 msgid "from %1 to %2"
 msgstr "Von %1 bis %2"
 
-#: graph.cc:409
-msgid "week %U"
-msgstr "Woche %U"
+#: graph.cc:314
+msgid "week %V"
+msgstr "Woche %V"
 
 #: gui.cc:42
 msgid "Sensordata"

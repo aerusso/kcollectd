@@ -36,34 +36,11 @@
 
 #include "rrd_interface.h"
 #include "labeling.h"
+#include "timeaxis.h"
 #include "graph.moc"
 
 // definition of NaN in Y_Range
 const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
-
-/*
- * strftime already is localized
- */
-static QString Qstrftime(const char *format, const tm *t)
-{
-  char buffer[50];
-  if(strftime(buffer, sizeof(buffer), format, t))
-    return QString::fromLocal8Bit(buffer);
-  else
-    return QString();
-}
-
-/*
- * generate a time_t that is monday 00:00 anywhere
- */
-static time_t week_align()
-{
-  time_t w = 7*24*3600;
-  struct tm bt = *localtime(&w);
-  bt.tm_sec = bt.tm_min = bt.tm_hour;
-  bt.tm_mday -= bt.tm_wday - 1;
-  return mktime(&bt);
-}
 
 /**
  *
@@ -249,41 +226,50 @@ void Graph::drawHeader(const QRect &rect)
 	label_y2, label);
 }
 
-void Graph::drawXBase(QPainter &paint, const QRect &rect, 
-      time_t off, time_t major, time_t minor, const char *format, bool center)
+void Graph::drawXLines(const QRect &rect, time_iterator i, QColor color)
 {
+  if (!i.valid()) return;
+
+  // setting up linear mappings
+  const linMap xmap(start, rect.left(), end, rect.right());
+ 
+  // if lines are to close draw nothing
+  if (i.interval() * xmap.m() < 3) 
+    return;
+
+  // draw lines
+  QPainter paint(&offscreen);
+  paint.setPen(color);
+  for(; *i <= end; ++i) {
+    int x = xmap(*i);
+    paint.drawLine(x, rect.top(), x, rect.bottom());
+  }
+}
+
+void Graph::drawXLabel(const QRect &rect, 
+      time_iterator i, QString format, bool center)
+{
+  if (!i.valid()) return;
+
   const QFontMetrics fontmetric(font);
+  QPainter paint(&offscreen);
   
   // setting up linear mappings
   const linMap xmap(start, rect.left(), end, rect.right());
-
-  // draw minor lines
-  if(minor) {
-    time_t mmin = ((start + minor - off) / minor) * minor + off;
-    paint.setPen(color_minor);
-    for(time_t i = mmin; i <= end; i += minor) {
-      paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
-    }
-  }
-
-  // draw major lines
-  time_t min = ((start + major - off) / major) * major + off;
-  paint.setPen(color_major);
-  for(time_t i = min; i <= end; i += major) {
-    paint.drawLine(xmap(i), rect.top(), xmap(i), rect.bottom());
-  }
 
   // draw labels
   paint.setPen(KGlobalSettings::textColor());
-  if (center)
-    min = ((start - off) / major) * major + off;
-  for(time_t i = min; i <= end; i += major) {
-    char buffer[50];
-    if(QString label = Qstrftime(i18n(format), localtime(&i))) {
+  if (center) --i;
+  for(; *i <= end; ++i) {
+    // special handling for localtime/mktime on DST
+    time_t t = center ? *i + i.interval() / 2 : *i;
+    tm tm;
+    localtime_r(&t, &tm);
+    if(QString label = Qstrftime(i18n(format), &tm)) {
       const int width = fontmetric.width(label);
       int x = center 
-	? xmap(i + major / 2) - width / 2
-	: xmap(i) - width / 2;
+	? xmap(*i + i.interval() / 2) - width / 2
+	: xmap(*i) - width / 2;
 	  
       if (x > rect.left() && x + width < rect.right())
 	paint.drawText(x, label_y1, label);
@@ -291,100 +277,8 @@ void Graph::drawXBase(QPainter &paint, const QRect &rect,
   }
 }
 
-inline static void next_month(struct tm &bt)
-{
-  ++bt.tm_mon;
-  if (bt.tm_mon == 12) {
-    bt.tm_mon = 0;
-    ++bt.tm_year;
-  }
-}
-
-void Graph::drawXMonth(QPainter &paint, const QRect &rect)
-{
-  const QFontMetrics fontmetric(font);
-  
-  // setting up linear mappings
-  const linMap xmap(start, rect.left(), end, rect.right());
-
-  struct tm bt = *localtime(&start);
-  bt.tm_sec = bt.tm_min = bt.tm_hour;
-  bt.tm_mday = 1;
-  
-  int i = mktime(&bt);
-  while (i <= end) {
-    // draw major lines
-    int x = xmap(i);
-    if (x > rect.left()) {
-      paint.setPen(color_major);
-      paint.drawLine(x, rect.top(), x, rect.bottom());
-    }
-    // draw labels
-    paint.setPen(KGlobalSettings::textColor());
-    if(QString label = Qstrftime("%b", &bt)) {
-      const int width = fontmetric.width(label);
-      x =  xmap(i + 3600*24*30 / 2) - width / 2;
-	  
-      if (x > rect.left() && x + width < rect.right())
-	paint.drawText(x, label_y1, label);
-
-      next_month(bt);
-      i = mktime(&bt);
-    }
-  }
-}
-
-void Graph::drawXYear(QPainter &paint, const QRect &rect)
-{
-  const QFontMetrics fontmetric(font);
-  
-  // setting up linear mappings
-  const linMap xmap(start, rect.left(), end, rect.right());
-
-  // minor lines
-  struct tm bt = *localtime(&start);
-  bt.tm_sec = bt.tm_min = bt.tm_hour;
-  bt.tm_mday = 1;
-  
-  int i = mktime(&bt);
-  while (i <= end) {
-    int x = xmap(i);
-    if (x > rect.left()) {
-      paint.setPen(color_minor);
-      paint.drawLine(x, rect.top(), x, rect.bottom());
-    }
-    next_month(bt);
-    i = mktime(&bt);
-  }
-    
-  bt = *localtime(&start);
-  bt.tm_sec = bt.tm_min = bt.tm_hour;
-  bt.tm_mday = 1;
-  bt.tm_mon = 0;
-  i = mktime(&bt);
-  while (i <= end) {
-    // draw major lines
-    int x = xmap(i);
-    if (x > rect.left()) {
-      paint.setPen(color_major);
-      paint.drawLine(x, rect.top(), x, rect.bottom());
-    }
-    // draw labels
-    paint.setPen(KGlobalSettings::textColor());
-    if(QString label = Qstrftime("%Y", &bt)) {
-      const int width = fontmetric.width(label);
-      x =  xmap(i + 3600*24*365 / 2) - width / 2;
-	  
-      if (x > rect.left() && x + width < rect.right())
-	paint.drawText(x, label_y1, label);
-
-      ++bt.tm_year;
-      i = mktime(&bt);
-    }
-  }
-}
-
-void Graph::drawXGrid(const QRect &rect)
+void Graph::findXGrid(const QRect &rect, QString &format, bool &center,
+      time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x)
 {
   const time_t min = 60;
   const time_t hour = 3600;
@@ -401,7 +295,7 @@ void Graph::drawXGrid(const QRect &rect)
     const char *format;
     bool center;
     bla align;
-  } axe_params[] = {
+  } axis_params[] = {
     {   day,   1*min,     10, "%H:%M",              false, align_tzalign },
     {   day,   2*min,     30, "%H:%M",              false, align_tzalign },
     {   day,   5*min,    min, "%H:%M",              false, align_tzalign },
@@ -417,36 +311,42 @@ void Graph::drawXGrid(const QRect &rect)
     {  week,   2*day, 6*hour, "%a",                 true,  align_tzalign },
     { month,     day, 6*hour, "%a %d",              true,  align_tzalign },
     { month,     day, 6*hour, "%d",                 true,  align_tzalign },
-    {  year,    week,    day, I18N_NOOP("week %U"), true,  align_week    },
+    {  year,    week,    day, I18N_NOOP("week %V"), true,  align_week    },
     {  year,   month,    day, "%b",                 true,  align_month   },
     {     0,       0,      0, 0,                    true,  align_tzalign },
   };
 
-  QPainter paint(&offscreen);
   const QFontMetrics fontmetric(font);
+  const time_t time_span = end - start;
+  const time_t now = time(0);
 
-  const time_t time_span = end-start;
-  
-  for(int i=0; axe_params[i].maxspan; ++i) {
-    if (time_span < axe_params[i].maxspan) {
-      time_t now = time(0);
-      if(QString label = Qstrftime(axe_params[i].format, localtime(&now))) {
+  for(int i=0; axis_params[i].maxspan; ++i) {
+    if (time_span < axis_params[i].maxspan) {
+      if(QString label = Qstrftime(axis_params[i].format, localtime(&now))) {
 	const int textwidth = fontmetric.width(label) 
-	  * time_span / axe_params[i].major * 3 / 2;
+	  * time_span / axis_params[i].major * 3 / 2;
 	if (textwidth < rect.width()) {
-	  switch(axe_params[i].align) {
+	  switch(axis_params[i].align) {
 	  case align_tzalign:
-	    drawXBase(paint, rect, tz_off, 
-		  axe_params[i].major, axe_params[i].minor, 
-		  axe_params[i].format, axe_params[i].center);
+	    minor_x.set(start, axis_params[i].minor);
+	    major_x.set(start, axis_params[i].major);
+	    label_x.set(start, axis_params[i].major);
+	    format = axis_params[i].format;
+	    center = axis_params[i].center;
 	    break;
-	  case align_week: 
-	    drawXBase(paint, rect, week_align(), 
-		  axe_params[i].major, axe_params[i].minor, 
-		  axe_params[i].format, axe_params[i].center);	    
+	  case align_week:
+	    minor_x.set(start, day);
+	    major_x.set(start, 1, time_iterator::weeks);
+	    label_x.set(start, 1, time_iterator::weeks);
+	    format = axis_params[i].format;
+	    center = axis_params[i].center;
 	    break;
 	  case align_month:
-	    drawXMonth(paint, rect); 
+	    minor_x.set(start, axis_params[i].minor);
+	    major_x.set(start, 1, time_iterator::month);
+	    label_x.set(start, 1, time_iterator::month);
+	    format = axis_params[i].format;
+	    center = axis_params[i].center;
 	    break;
 	  }
 	  return;
@@ -454,10 +354,27 @@ void Graph::drawXGrid(const QRect &rect)
       }
     }
   }
-  drawXYear(paint, rect);
+  if(QString label = Qstrftime("%Y", localtime(&now))) {
+    const int textwidth = fontmetric.width(label) * 3 / 2;
+    // fixed-point calculation with 16 bit fraction.
+    int num = (time_span * textwidth * 16) / ( year * rect.width());
+    if (num < 16 ) {
+      minor_x.set(start, 1, time_iterator::month);
+      major_x.set(start, 1, time_iterator::years);
+      label_x.set(start, 1, time_iterator::years);
+      format = "%Y";
+      center = true;
+    } else {
+      minor_x.set(start, 1, time_iterator::years);
+      major_x.set(start, (num+15)/16, time_iterator::years);
+      label_x.set(start, (num+15)/16, time_iterator::years);
+      format = "%Y";
+      center = false;
+    }
+  }
 }
 
-void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
+void Graph::drawYLabel(const QRect &rect, const Range &y_range, double base)
 {
   // setting up linear mappings
   const linMap ymap(y_range.min(), rect.bottom(), y_range.max(), rect.top());
@@ -479,28 +396,26 @@ void Graph::drawYGrid(const QRect &rect, const Range &y_range, double base)
     const int x = rect.left() - fontmetric.width(label) - 4;
     paint.drawText(x,  ymap(i), label);
   }
+}
 
-  // minor lines
-  paint.setPen(color_minor);
-  double minbase = base/10;
-  if (minbase * -ymap.m() < 5) minbase = base/5;
-  if (minbase * -ymap.m() < 5) minbase = base/2;
-  if (minbase * -ymap.m() > 5) {
-    double minmin = ceil(y_range.min()/minbase)*minbase;
-    double minmax = floor(y_range.max()/minbase)*minbase;
-    for(double i = minmin; i< minmax; i += minbase) {
-      paint.drawLine(rect.left(), ymap(i), rect.right(), ymap(i));
-    }
-  }
+void Graph::drawYLines(const QRect &rect, const Range &y_range, double base, 
+      QColor color)
+{
+  // setting up linear mappings
+  const linMap ymap(y_range.min(), rect.bottom(), y_range.max(), rect.top());
 
-  // major lines
-  paint.setPen(color_major);
+  const QFontMetrics fontmetric(font);
+
+  QPainter paint(&offscreen);
+
+  // draw lines
+  paint.setPen(color);
   if (base * -ymap.m() < 5) base = base/5;
   if (base * -ymap.m() < 5) base = base/2;
   if (base * -ymap.m() > 5) {
-    double minmin = ceil(y_range.min()/base)*base;
-    double minmax = floor(y_range.max()/base)*base;
-    for(double i = minmin; i< minmax; i += base) {
+    double min = ceil(y_range.min()/base)*base;
+    double max = y_range.max();
+    for(double i = min; i < max; i += base) {
       paint.drawLine(rect.left(), ymap(i), rect.right(), ymap(i));
     }
   }
@@ -529,6 +444,7 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
   if (!min_data.empty() && !max_data.empty()) {  
     paint.setPen(color_minmax);
     paint.setBrush(QBrush(color_minmax));
+    paint.setBrush(QBrush(QColor(qRgba(0,100,0,70))));
     for(int i=0; i<size; ++i) {
       while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
       int l = i;
@@ -562,7 +478,6 @@ void Graph::drawGraph(const QRect &rect, double min, double max)
       paint.drawPolyline(points);
     }
   }
-  paint.end();
 }
 
 /**
@@ -610,9 +525,19 @@ void Graph::drawAll()
   paint.fillRect(graphrect, color_graph_bg);
 
   drawHeader(graphrect);
-  drawYGrid(graphrect, y_range, base);
-  drawXGrid(graphrect);
 
+  time_iterator minor_x, major_x, label_x;
+  QString format_x;
+  bool center_x;
+  findXGrid(graphrect, format_x, center_x, minor_x, major_x, label_x);
+
+  // draw minor, major, graph
+  drawXLines(graphrect, minor_x, color_minor);
+  drawYLines(graphrect, y_range, base/10, color_minor);
+  drawXLines(graphrect, major_x, color_major);
+  drawYLines(graphrect, y_range, base, color_major);
+  drawXLabel(graphrect, label_x, format_x, center_x);
+  drawYLabel(graphrect, y_range, base);
   drawGraph(graphrect, y_range.min(), y_range.max());
 
   // copy to screen

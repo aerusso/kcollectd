@@ -32,4 +32,6 @@ bool si_char(double d, std::string &s, double &m);
 
 std::string si_number(double d, int p, const std::string &s, double m);
 
+QString Qstrftime(const char *format, const tm *t);
+
 #endif

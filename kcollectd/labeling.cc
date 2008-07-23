@@ -22,6 +22,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include <qstring.h>
+
 #include "labeling.h"
 
 bool si_char(double d, std::string &s, double &m)
@@ -70,4 +72,16 @@ std::string si_number(double d, int p, const std::string &s, double m)
   if (!s.empty())
     os << " " << s;
   return os.str();
+}
+
+/*
+ * strftime already is localized
+ */
+QString Qstrftime(const char *format, const tm *t)
+{
+  char buffer[50];
+  if(strftime(buffer, sizeof(buffer), format, t))
+    return QString::fromLocal8Bit(buffer);
+  else
+    return QString();
 }

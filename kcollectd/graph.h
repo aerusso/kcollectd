@@ -35,6 +35,8 @@
 #include <qpixmap.h>
 #include <qrect.h>
 
+class time_iterator;
+
 /**
  * small helper holding tow doubles e.g. a point
  */
@@ -103,12 +105,12 @@ public slots:
   void drawAll();
   void minmax();
   void drawHeader(const QRect &rect);
-  void drawXBase(QPainter &paint, const QRect &rect, time_t off, 
-	time_t major, time_t minor, const char *format, bool center);
-  void drawXMonth(QPainter &paint, const QRect &rect);
-  void drawXYear(QPainter &paint, const QRect &rect);
-  void drawXGrid(const QRect &rect);
-  void drawYGrid(const QRect &rect, const Range &range, double base);
+  void drawYLines(const QRect &rect, const Range &y_range, double base, QColor color);
+  void drawYLabel(const QRect &rect, const Range &range, double base);
+  void drawXLines(const QRect &rect, time_iterator it, QColor color);
+  void drawXLabel(const QRect &rect, time_iterator it, QString format, bool center);
+  void findXGrid(const QRect &rect, QString &format, bool &center, 
+       time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
   void drawGraph(const QRect &rect, double min, double max);
 
   // rrd-data

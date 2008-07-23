@@ -101,7 +101,6 @@ void get_rrd_data (const std::string &file, const std::string &ds,
   
   status = rrd_fetch(argc, argv, start, end, step, &ds_cnt, &ds_name, &data);
   if (status != 0) {
-    std::cerr << "get_rrd_data: rrd_fetch failed.\n";
     return;
   }
 
