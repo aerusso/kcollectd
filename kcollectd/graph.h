@@ -35,38 +35,10 @@
 #include <qpixmap.h>
 #include <qrect.h>
 
+#include "misc.h"
+
 class time_iterator;
 
-/**
- * small helper holding tow doubles e.g. a point
- */
-class Range {
-  double x_;
-  double y_;
-  static const double NaN;
-public:
-  Range() : x_(NaN), y_(NaN) { }
-  Range(double x, double y) : x_(x), y_(y) { }
-  double min() const { return x_; }
-  double max() const { return y_; }
-  void min(double a) { x_ = a; }
-  void max(double a) { y_ = a; }
-  bool isValid() const { return x_ != NaN; }
-};
-
-/**
- * linear mapping from range [x1, x2] to range [y1, y2]
- */
-class linMap {
-  double m_, t_;
-public:
-  linMap(double x1, double y1, double x2, double y2) {
-    m_ = (y2-y1)/(x2-x1);
-    t_ = y1-m_*x1;
-  }
-  double operator()(double x) const { return m_ * x + t_; }
-  double m() const { return m_; }
-};
 
 /**
  *
@@ -75,11 +47,19 @@ class Graph : public QFrame
 {
   Q_OBJECT;
  public:
+
+  struct datasource {
+    QString rrd;
+    QString ds;
+    QString label;
+    std::vector<double> avg_data, min_data, max_data;
+  };
+
   Graph(QWidget *parent, const char *name=0);
   Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
 	const char *name=0);
 
-  void setup(const char *rrd, const char *ds, const char* label = 0);
+  void setup(std::vector<datasource> &list);
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -103,21 +83,19 @@ public slots:
  private:
   bool fetchAllData();
   void drawAll();
-  void minmax();
-  void drawHeader(const QRect &rect);
+  void minmax(const datasource &s);
+  void drawHeader(int left, int right, int pos, const QString &test);
+  void drawFooter(int left, int right);
   void drawYLines(const QRect &rect, const Range &y_range, double base, QColor color);
   void drawYLabel(const QRect &rect, const Range &range, double base);
   void drawXLines(const QRect &rect, time_iterator it, QColor color);
-  void drawXLabel(const QRect &rect, time_iterator it, QString format, bool center);
-  void findXGrid(const QRect &rect, QString &format, bool &center, 
+  void drawXLabel(int left, int right, time_iterator it, QString format, bool center);
+  void findXGrid(int width, QString &format, bool &center, 
        time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
-  void drawGraph(const QRect &rect, double min, double max);
+  void drawGraph(const QRect &rect, const datasource &ds, double min, double max);
 
   // rrd-data
-  std::vector<double> avg_data, min_data, max_data;
-  std::string file;
-  std::string ds;
-  std::string name;
+  std::vector<datasource> dslist;
   bool data_is_valid;
   time_t start;	// real start of data (from rrd_fetch)
   time_t end;	// real end of data (from rrd_fetch)
@@ -135,7 +113,7 @@ public slots:
   QFont font;
   QPixmap offscreen;
   QRect graphrect;
-  int header_y, label_y1, label_y2;
+  int label_y1, label_y2;
   QColor color_major, color_minor, color_graph_bg;
   QColor color_minmax, color_line;
 };

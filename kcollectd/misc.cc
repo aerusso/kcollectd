@@ -24,8 +24,12 @@
 
 #include <qstring.h>
 
-#include "labeling.h"
+#include "misc.h"
 
+
+/**
+ * determine the apropriate SI-prefix for a number
+ */
 bool si_char(double d, std::string &s, double &m)
 {
   const struct {
@@ -65,6 +69,9 @@ bool si_char(double d, std::string &s, double &m)
   }
 }
 
+/**
+ * formats a number with prefix s and magnitude m, precission p
+ */
 std::string si_number(double d, int p, const std::string &s, double m)
 {
   std::ostringstream os;
@@ -74,8 +81,9 @@ std::string si_number(double d, int p, const std::string &s, double m)
   return os.str();
 }
 
-/*
- * strftime already is localized
+/**
+ * some kind of strftime that returns a QString and handles locale
+ * !! strftime already is localized
  */
 QString Qstrftime(const char *format, const tm *t)
 {

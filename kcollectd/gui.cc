@@ -41,6 +41,8 @@ KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
   listview = new KListView(this);
   listview->addColumn(i18n("Sensordata"));
   listview->setRootIsDecorated(true);
+  listview->setShowSortIndicator(true);
+  listview->setSelectionMode(QListView::Multi);
   listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   hbox->addWidget(listview);
 
@@ -64,8 +66,7 @@ KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
 
-  connect(listview, SIGNAL(executed(QListViewItem *)), 
-	SLOT(selectionChanged(QListViewItem *)));
+  connect(listview, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
   connect(last_month, SIGNAL(clicked()), graph, SLOT(last_month()));
   connect(last_week, SIGNAL(clicked()), graph, SLOT(last_week()));
   connect(last_day, SIGNAL(clicked()), graph, SLOT(last_day()));
@@ -75,10 +76,21 @@ KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
 
 }
 
-void KCollectdGui::selectionChanged(QListViewItem * item)
+void KCollectdGui::selectionChanged()
 {
-  if (item && item->text(1)) {
-    graph->setup(item->text(2), item->text(0), item->text(1));
-    graph->update();
+  std::vector<Graph::datasource> list;
+  
+  QListViewItemIterator i(listview);
+  for ( ;i.current(); ++i) {
+    if (i.current()->isSelected()) {
+      Graph::datasource l;
+      l.rrd = i.current()->text(2);
+      l.ds = i.current()->text(0);
+      l.label = i.current()->text(1);
+      list.push_back(l);
+    }
   }
+
+  graph->setup(list);
+  graph->update();
 }

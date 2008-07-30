@@ -43,7 +43,7 @@ public:
   KCollectdGui(QWidget *parent=0, const char *name=0);
 
 public slots:  
-  void selectionChanged(QListViewItem * item);
+  void selectionChanged();
   
 public:
   KListView *listview;
