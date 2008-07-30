@@ -21,6 +21,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <limits>
 
 #include <qstring.h>
 
@@ -93,3 +94,7 @@ QString Qstrftime(const char *format, const tm *t)
   else
     return QString();
 }
+
+// definition of NaN in Range
+const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
+

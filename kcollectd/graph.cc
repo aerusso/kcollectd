@@ -25,7 +25,6 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
-#include <limits>
 
 #include <qpainter.h>
 #include <qpointarray.h>
@@ -38,9 +37,6 @@
 #include "misc.h"
 #include "timeaxis.h"
 #include "graph.moc"
-
-// definition of NaN in Y_Range
-const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
 
 /**
  *
