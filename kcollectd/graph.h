@@ -81,7 +81,6 @@ public slots:
  private:
   bool fetchAllData();
   void drawAll();
-  void minmax(const datasource &s);
   void drawHeader(int left, int right, int pos, const QString &test);
   void drawFooter(int left, int right);
   void drawYLines(const QRect &rect, const Range &y_range, double base, QColor color);
@@ -102,8 +101,6 @@ public slots:
   unsigned long step;
 
   // technical helpers
-  Range y_range;
-  double base;
   int origin_x, origin_y;
   time_t origin_start, origin_end;
 

@@ -135,11 +135,52 @@ Range ds_minmax(const std::vector<double> &avg_data,
     }
   }
   
-  // nothing found
+  // no data found at all
   if(!valid) return Range();
 
   return Range(min, max);
 }
+
+/**
+ * determine min and max values for a graph and base
+ * and do some adjustment
+ */
+
+Range ds_minmax_adj(const std::vector<double> &avg_data, 
+	    const std::vector<double> &min_data,
+	    const std::vector<double> &max_data, 
+	    double *base)
+{
+  Range y_range = ds_minmax(avg_data, min_data, max_data);
+
+  if(!y_range.isValid()) 
+    return Range();
+  
+  double min(y_range.min()), max(y_range.max());
+  double tmp_base = 1.0;
+
+  if (y_range.min() == y_range.max()) {
+    max += 1;
+    min -= 1;
+  } else {
+    // allign to sensible values
+    tmp_base = pow(10, floor(log(max-min)/log(10)));
+    min = floor(min/tmp_base)*tmp_base;
+    max = ceil(max/tmp_base)*tmp_base;
+    
+    // setting some margin at top and bottom
+    const double margin = 0.05 * (max-min);
+    max += margin;
+    min -= margin;
+  }
+
+  y_range.set(min, max);
+  if (base) *base = tmp_base;
+
+  return y_range;
+}
+
+
 
 // definition of NaN in Range
 const double Range::NaN = std::numeric_limits<double>::quiet_NaN();

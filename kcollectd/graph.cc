@@ -110,37 +110,6 @@ void Graph::setup(std::vector<datasource> &list)
   dslist = list;
 }
 
-/**
- * determine min and max values for a graph and save it into y_range
- */
-
-void Graph::minmax(const datasource &ds)
-{
-  y_range = ds_minmax(ds.avg_data, ds.min_data, ds.max_data);
-
-  if(!y_range.isValid()) 
-    return;
-  
-  double min(y_range.min()), max(y_range.max());
-
-  if (y_range.min() == y_range.max()) {
-    max += 1;
-    min -= 1;
-  } else {
-    // allign to sensible values
-    base = pow(10, floor(log(max-min)/log(10)));
-    min = floor(min/base)*base;
-    max = ceil(max/base)*base;
-    
-    // setting some margin at top and bottom
-    const double margin = 0.05 * (max-min);
-    max += margin;
-    min -= margin;
-  }
-
-  y_range.set(min, max);
-}
-
 void Graph::drawHeader(int left, int right, int pos, const QString &text)
 {
   QPainter paint(&offscreen);
@@ -487,7 +456,8 @@ void Graph::drawAll()
       i != dslist.end(); ++n, ++i) {
     
     // y-scaling
-    minmax(*i);
+    double base;
+    Range y_range = ds_minmax_adj(i->avg_data, i->min_data, i->max_data, &base);
     if (!y_range.isValid())
       continue;
 

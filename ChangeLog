@@ -2,6 +2,7 @@
 	removed dependency on kglobalsettings.h from graph-widget
 	most of minmax → misc.cc
 	code-cleanup
+	removed y_range and base vom Graph-widget-class
 
 2008-07-31:
 	Version 0.2
