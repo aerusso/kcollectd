@@ -1,4 +1,5 @@
-/*
+/* 
+ Constructs a font object that uses the application's default font. 
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
  * 
@@ -30,7 +31,6 @@
 #include <qpointarray.h>
 #include <qrect.h>
 
-#include <kglobalsettings.h>
 #include <klocale.h>
 
 #include "rrd_interface.h"
@@ -43,7 +43,7 @@
  */
 Graph::Graph(QWidget *parent, const char *name) :
   QFrame(parent, name), data_is_valid(false), 
-  end(time(0)), span(3600*24), step(1), font(KGlobalSettings::generalFont()),
+  end(time(0)), span(3600*24), step(1), font(QFont()),
   color_major(140, 115, 60), color_minor(80, 65, 34), color_graph_bg(0, 0, 0),
   color_minmax(0, 100, 0), color_line(0, 255, 0)
 {
@@ -240,7 +240,7 @@ void Graph::drawXLabel(int left, int right,
   const linMap xmap(start, left, end, right);
 
   // draw labels
-  paint.setPen(KGlobalSettings::textColor());
+  paint.setPen(foregroundColor());
   if (center) --i;
   for(; *i <= end; ++i) {
     // special handling for localtime/mktime on DST
