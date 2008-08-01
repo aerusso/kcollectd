@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -93,6 +94,51 @@ QString Qstrftime(const char *format, const tm *t)
     return QString::fromLocal8Bit(buffer);
   else
     return QString();
+}
+
+/**
+ * determine min and max values for a graph and save it into y_range
+ */
+
+Range ds_minmax(const std::vector<double> &avg_data, 
+      const std::vector<double> &min_data,
+      const std::vector<double> &max_data)
+{
+  const std::size_t size = avg_data.size();
+  // all three datasources must be of equal length
+  if (size != min_data.size() || size != max_data.size())
+    return Range();
+
+  bool valid = false;
+  double min(std::numeric_limits<double>::max());
+  double max(std::numeric_limits<double>::min());
+
+  // process avg_data
+  if (!avg_data.empty()) {
+    for(std::size_t i=0; i<size; ++i) {
+      if (isnan(avg_data[i])) continue;
+      valid = true;
+      if (min > avg_data[i]) min = avg_data[i];
+      if (max < avg_data[i]) max = avg_data[i];
+    }
+  }
+
+  // process min/max-data
+  if (!min_data.empty() && !max_data.empty()) {  
+    for(std::size_t i=0; i<size; ++i) {
+      if (isnan(min_data[i]) || isnan(max_data[i])) continue;
+      valid = true;
+      if (min > min_data[i]) min = min_data[i];
+      if (max < min_data[i]) max = min_data[i];
+      if (min > max_data[i]) min = max_data[i];
+      if (max < max_data[i]) max = max_data[i];
+    }
+  }
+  
+  // nothing found
+  if(!valid) return Range();
+
+  return Range(min, max);
 }
 
 // definition of NaN in Range

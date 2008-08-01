@@ -26,8 +26,6 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <iostream>
-#include <cstring>
 #include <cstdlib>
 
 #include <rrd.h>

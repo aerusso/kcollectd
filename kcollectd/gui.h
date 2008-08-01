@@ -26,10 +26,6 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <string>
-#include <iostream>
-#include <vector>
-
 #include <qwidget.h>
 
 class QLabel;

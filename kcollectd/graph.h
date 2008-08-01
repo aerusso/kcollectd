@@ -27,9 +27,7 @@
 #define GRAPH_H
 
 #include <string>
-#include <iostream>
 #include <vector>
-#include <limits>
 
 #include <qframe.h>
 #include <qpixmap.h>

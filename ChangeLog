@@ -1,5 +1,9 @@
+2008-08-01:
+	removed dependency on kglobalsettings.h from graph-widget
+	most of minmax → misc.cc
+	code-cleanup
 
-2008-07-30:
+2008-07-31:
 	Version 0.2
 	multi-select. The user now can select multible datasources.
 	  There might be problems if rrd-layout differs between datasources
@@ -21,4 +25,4 @@
 
 2008-07-10
 	translation
-	
+

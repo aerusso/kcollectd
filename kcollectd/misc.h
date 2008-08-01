@@ -27,6 +27,7 @@
 #define LABELING_H
 
 #include <string>
+#include <vector>
 
 bool si_char(double d, std::string &s, double &m);
 
@@ -64,7 +65,11 @@ public:
   double max() const { return y_; }
   void min(double a) { x_ = a; }
   void max(double a) { y_ = a; }
+  void set(double x, double y) { x_ = x; y_ = y; }
   bool isValid() const { return x_ != NaN; }
 };
 
+Range ds_minmax(const std::vector<double> &avg_data, 
+      const std::vector<double> &min_data,
+      const std::vector<double> &max_data);
 #endif

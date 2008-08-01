@@ -19,11 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/time.h>
 #include <time.h>
-#include <stdlib.h>
 
-#include <cstring>
 #include <vector>
 #include <cmath>
 
@@ -119,44 +116,16 @@ void Graph::setup(std::vector<datasource> &list)
 
 void Graph::minmax(const datasource &ds)
 {
-  if (ds.avg_data.empty()) {
+  y_range = ds_minmax(ds.avg_data, ds.min_data, ds.max_data);
+
+  if(!y_range.isValid()) 
     return;
-  }
   
-  const std::vector<double> &avg_data = ds.avg_data;
-  const std::vector<double> &min_data = ds.min_data;
-  const std::vector<double> &max_data = ds.max_data;
-  
-  // determine min/max
-  bool valid = false;
-  const int size = avg_data.size();
-  double min(std::numeric_limits<double>::max());
-  double max(std::numeric_limits<double>::min());
-  if (!avg_data.empty()) {
-    for(int i=0; i<size; ++i) {
-      if (isnan(avg_data[i])) continue;
-      valid = true;
-      if (min > avg_data[i]) min = avg_data[i];
-      if (max < avg_data[i]) max = avg_data[i];
-    }
-  }
-  if (!min_data.empty() && !max_data.empty()) {  
-    for(int i=0; i<size; ++i) {
-      if (isnan(min_data[i]) || isnan(max_data[i])) continue;
-      valid = true;
-      if (min > min_data[i]) min = min_data[i];
-      if (max < min_data[i]) max = min_data[i];
-      if (min > max_data[i]) min = max_data[i];
-      if (max < max_data[i]) max = max_data[i];
-    }
-  }
-  
-  // no drawable data found
-  if(!valid) return;
-  
-  if (min == max) {
+  double min(y_range.min()), max(y_range.max());
+
+  if (y_range.min() == y_range.max()) {
     max += 1;
-    min -=1;
+    min -= 1;
   } else {
     // allign to sensible values
     base = pow(10, floor(log(max-min)/log(10)));
@@ -169,7 +138,7 @@ void Graph::minmax(const datasource &ds)
     min -= margin;
   }
 
-  y_range = Range(min, max);
+  y_range.set(min, max);
 }
 
 void Graph::drawHeader(int left, int right, int pos, const QString &text)
@@ -376,7 +345,7 @@ void Graph::drawYLabel(const QRect &rect, const Range &y_range, double base)
   for(double i = min; i <= max; i += base) {
     const std::string label = si_number(i, 6, SI, mag);
     const int x = rect.left() - fontmetric.width(label) - 4;
-    paint.drawText(x,  ymap(i), label);
+    paint.drawText(x,  ymap(i) + fontmetric.ascent()/2, label);
   }
 }
 
