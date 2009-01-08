@@ -1,3 +1,7 @@
+2009-01-08:
+	Version 0.3
+	fixed bug reported by Daniel Clark (this was a security problem)
+	
 2008-08-01:
 	removed dependency on kglobalsettings.h from graph-widget
 	most of minmax → misc.cc
