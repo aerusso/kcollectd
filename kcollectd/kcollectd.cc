@@ -32,6 +32,8 @@
 #include <kmessagebox.h>
 #include <klocale.h>
 
+#include "../config.h"
+
 #include "rrd_interface.h"
 #include "gui.h"
 
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
   std::vector<std::string> rrds;
   
   KCmdLineArgs::init(argc, argv, "kcollectd", i18n("KCollectd"), 
-	i18n("Viewer for Collectd-databases"), "0.1");
+	i18n("Viewer for Collectd-databases"), VERSION);
   KApplication a;
   KCollectdGui gui;
   

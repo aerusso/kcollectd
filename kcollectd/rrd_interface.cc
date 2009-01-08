@@ -29,10 +29,61 @@
 #include <cstdlib>
 
 #include <rrd.h>
+#include <errno.h>
 
 #include "rrd_interface.h"
 
-/*
+/**
+ * call a command like popen but use execvp 
+ * 
+ * see execvp(3) and popen(3) for documantation
+ * this is based on code from glibc.
+ */
+FILE *popenvp(const char *command, char *const argv[], const char *mode)
+{
+  int parent_end, child_end;
+  int pipe_fds[2];
+  pid_t child_pid;
+
+  if (pipe(pipe_fds) < 0) return NULL;
+  if (mode[0] == 'r' && mode[1] == '\0') {
+    parent_end = pipe_fds[0];
+    child_end = pipe_fds[1];
+  } else if (mode[0] == 'w' && mode[1] == '\0') {
+    parent_end = pipe_fds[1];
+    child_end = pipe_fds[0];
+  } else {
+    close(pipe_fds[0]);
+    close(pipe_fds[1]);
+    errno = EINVAL;
+    return NULL;
+  }
+  child_pid = fork();
+  if (child_pid == 0) {
+    int child_std_end = mode[0] == 'r' ? 1 : 0;
+    
+    if (child_end != child_std_end) {
+      dup2(child_end, child_std_end);
+      close(child_end);
+    }
+
+    execvp(command, argv);
+    exit (127);
+  }
+  close(child_end);
+  if (child_pid < 0) {
+    close(parent_end);
+    return NULL;
+  }
+  return fdopen(parent_end, mode);
+}
+
+int pclosevp(FILE *stream)
+{
+  return fclose(stream);
+}
+
+/**
  * read the datasources-names of a rrd from “rrdtools info”, because
  * there is no official API to get them
  */
@@ -44,9 +95,10 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
   list.clear();
 
   // call rrdtool info <filename>
-  string command("rrdtool info ");
-  command += rrdfile;
-  FILE *in = popen(command.c_str(), "r");
+  char * rrdf = strdup(rrdfile.c_str()); // This might be gratuitous (?!)
+  char * const command[4] = { (char *)"rrdtool", (char *)"info", rrdf, 0};
+  FILE *in = popenvp("rrdtool", command, "r");
+  free(rrdf);
   if (!in) {
     throw bad_rrdinfo();
   } 
@@ -67,7 +119,7 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
       line += static_cast<char>(c);
    }
   }
-  if (pclose(in)) {
+  if (pclosevp(in)) {
     throw bad_rrdinfo();
   }
 }

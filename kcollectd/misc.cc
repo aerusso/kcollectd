@@ -36,7 +36,7 @@ bool si_char(double d, std::string &s, double &m)
 {
   const struct {
     double factor;
-    const char *si_char;
+    const char * const si_char;
   } si_table[] = {
     { 1e-18, "a" },
     { 1e-15, "f" },
