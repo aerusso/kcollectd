@@ -300,13 +300,22 @@ void Graph::drawYLabel(const QRect &rect, const Range &y_range, double base)
   const linMap ymap(y_range.min(), rect.bottom(), y_range.max(), rect.top());
 
   const QFontMetrics fontmetric(font);
-
   QPainter paint(&offscreen);
 
   // SI Unit for nice display
   std::string SI;
   double mag;
   si_char(y_range.max(), SI, mag);
+
+  // make sure labels don not overlap
+  const int fontheight = fontmetric.height();
+  while(rect.height() < fontheight * (y_range.max()-y_range.min())/base) 
+    if (rect.height() > fontheight * (y_range.max()-y_range.min())/base/2)
+      base *= 2;
+    else if (rect.height() > fontheight * (y_range.max()-y_range.min())/base/5)
+      base *= 5;
+    else
+      base *= 10;
 
   // draw labels
   double min = ceil(y_range.min()/base)*base;
@@ -328,16 +337,22 @@ void Graph::drawYLines(const QRect &rect, const Range &y_range, double base,
 
   QPainter paint(&offscreen);
 
+  // adjust linespacing
+  if (base * -ymap.m() < 5.0)
+    if (2.0 * base * -ymap.m() > 5.0) 
+      base = base * 2.0;
+    else 
+      base = base * 5.0;
+
+  // and return if unsufficient
+  if (base * -ymap.m() < 5) return;
+
   // draw lines
   paint.setPen(color);
-  if (base * -ymap.m() < 5) base = base/5;
-  if (base * -ymap.m() < 5) base = base/2;
-  if (base * -ymap.m() > 5) {
-    double min = ceil(y_range.min()/base)*base;
-    double max = y_range.max();
-    for(double i = min; i < max; i += base) {
-      paint.drawLine(rect.left(), ymap(i), rect.right(), ymap(i));
-    }
+  double min = ceil(y_range.min()/base)*base;
+  double max = y_range.max();
+  for(double i = min; i < max; i += base) {
+    paint.drawLine(rect.left(), ymap(i), rect.right(), ymap(i));
   }
 }
 
