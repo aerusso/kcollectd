@@ -10,3 +10,8 @@ Debug/Release:
 RRD-Basedir:
   -DRRD_BASEDIR=[basedir]
   default is /var/lib/collectd/rrd
+
+rpath:
+  set
+  -DCMAKE_SKIP_RPATH=true
+  if you do not want to have an rpath in kcollectd.
