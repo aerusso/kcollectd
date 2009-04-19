@@ -34,7 +34,7 @@
 #include <KMessageBox>
 #include <KLocale>
 
-// Qt4 #include "../config.h"
+#include "../config.h"
 
 #include "rrd_interface.h"
 #include "gui.h"
@@ -112,8 +112,6 @@ int main(int argc, char **argv)
   using namespace boost::filesystem;
 
   std::vector<std::string> rrds;
-  // QT4
-  #define VERSION "0.1"
   KCmdLineArgs::init(argc, argv, "kcollectd", "",
 	ki18n("KCollectd"), VERSION, 
 	ki18n("Viewer for Collectd-databases"));
