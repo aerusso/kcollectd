@@ -29,9 +29,12 @@
 #include <string>
 #include <vector>
 
-#include <qframe.h>
-#include <qpixmap.h>
-#include <qrect.h>
+#include <QFrame>
+#include <QPixmap>
+#include <QRect>
+#include <QMouseEvent>
+#include <QPaintEvent>
+#include <QWheelEvent>
 
 #include "misc.h"
 
@@ -53,7 +56,7 @@ class Graph : public QFrame
     std::vector<double> avg_data, min_data, max_data;
   };
 
-  Graph(QWidget *parent, const char *name=0);
+  Graph(QWidget *parent=0);
   Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
 	const char *name=0);
 
@@ -81,15 +84,20 @@ public slots:
  private:
   bool fetchAllData();
   void drawAll();
-  void drawHeader(int left, int right, int pos, const QString &test);
-  void drawFooter(int left, int right);
-  void drawYLines(const QRect &rect, const Range &y_range, double base, QColor color);
-  void drawYLabel(const QRect &rect, const Range &range, double base);
-  void drawXLines(const QRect &rect, time_iterator it, QColor color);
-  void drawXLabel(int left, int right, time_iterator it, QString format, bool center);
+  void drawHeader(QPainter &paint, int left, int right, int pos, 
+	const QString &test);
+  void drawFooter(QPainter &paint, int left, int right);
+  void drawYLines(QPainter &paint, const QRect &rect, 
+	const Range &y_range, double base, QColor color);
+  void drawYLabel(QPainter &paint, const QRect &rect, 
+	const Range &range, double base);
+  void drawXLines(QPainter &paint, const QRect &rect, 
+	time_iterator it, QColor color);
+  void drawXLabel(QPainter &paint, int left, int right, 
+	time_iterator it, QString format, bool center);
   void findXGrid(int width, QString &format, bool &center, 
        time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
-  void drawGraph(const QRect &rect, const datasource &ds, double min, double max);
+  void drawGraph(QPainter &paint, const QRect &rect, const datasource &ds, double min, double max);
 
   // rrd-data
   std::vector<datasource> dslist;

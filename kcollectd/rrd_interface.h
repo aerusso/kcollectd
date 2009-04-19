@@ -30,14 +30,14 @@
 #include <vector>
 #include <set>
 
-#include <klocale.h>
+//#include <klocale.h>
 
 class bad_rrdinfo : public std::exception
 {
 public:
   virtual const char* what() const throw()
   {
-    return i18n("calling rrdinfo failed.");
+    return "calling rrdinfo failed.";
   }
 };
 

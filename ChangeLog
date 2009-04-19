@@ -1,3 +1,11 @@
+2009-04-19:
+	Ported to KDE4
+	single leave-entries are no longer shown in tree
+
+2009-03-31:
+	fixed overlapping of labels on flat graphs
+	improved horzontal-lines (there can now be 10, 5 or 2 in a region)
+
 2009-01-08:
 	Version 0.3
 	fixed bug reported by Daniel Clark (this was a security problem)

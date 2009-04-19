@@ -18,75 +18,77 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qlayout.h>
-#include <qlabel.h>
-#include <qwidget.h>
+#include <iostream>
 
-#include <kpushbutton.h>
-#include <klistview.h>
-#include <kiconloader.h>
-#include <kglobal.h>
-#include <klocale.h>
+#include <QLayout>
+#include <QLabel>
+#include <QWidget>
+#include <QTreeWidget>
+
+#include <KPushButton>
+#include <KIconLoader>
+#include <KGlobal>
+#include <KLocale>
 
 #include "graph.h"
 #include "gui.moc"
 
-KCollectdGui::KCollectdGui(QWidget *parent, const char *name)
-  : QWidget(parent, name)
+KCollectdGui::KCollectdGui(QWidget *parent)
+  : QWidget(parent)
 {
-  QHBoxLayout *hbox = new QHBoxLayout(this, 4, 4);
+  QHBoxLayout *hbox = new QHBoxLayout(this);
 
-  listview = new KListView(this);
-  listview->addColumn(i18n("Sensordata"));
+  listview = new QTreeWidget();
+  listview->setColumnCount(1);
+  listview->setHeaderLabels(QStringList(i18n("Sensordata")));
   listview->setRootIsDecorated(true);
-  listview->setShowSortIndicator(true);
-  listview->setSelectionMode(QListView::Multi);
+  //QT4 listview->setShowSortIndicator(true);
+  listview->setSelectionMode(QAbstractItemView::MultiSelection);
   listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   hbox->addWidget(listview);
 
-  QVBoxLayout *vbox = new QVBoxLayout(hbox);
-  graph = new Graph(this);
+  QVBoxLayout *vbox = new QVBoxLayout();
+  hbox->addLayout(vbox);
+  graph = new Graph();
   vbox->addWidget(graph);
 
-  QHBoxLayout *hbox2 = new QHBoxLayout(vbox, 4);
-  KPushButton *last_month = new KPushButton(i18n("last month"), this);
+  QHBoxLayout *hbox2 = new QHBoxLayout();
+  vbox->addLayout(hbox2);
+  KPushButton *last_month = new KPushButton(i18n("last month"));
   hbox2->addWidget(last_month);
-  KPushButton *last_week = new KPushButton(i18n("last week"), this);
+  KPushButton *last_week = new KPushButton(i18n("last week"));
   hbox2->addWidget(last_week);
-  KPushButton *last_day = new KPushButton(i18n("last day"), this);
+  KPushButton *last_day = new KPushButton(i18n("last day"));
   hbox2->addWidget(last_day);
-  KPushButton *last_hour = new KPushButton(i18n("last hour"), this);
+  KPushButton *last_hour = new KPushButton(i18n("last hour"));
   hbox2->addWidget(last_hour);
-  KPushButton *zoom_in = new KPushButton(BarIcon("viewmag+"), "", this);
+  KPushButton *zoom_in = new KPushButton(KIcon("zoom-in"), "");
   zoom_in->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_in);
-  KPushButton *zoom_out = new KPushButton(BarIcon("viewmag-"), "", this);
+  KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), "");
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
 
-  connect(listview, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
+  connect(listview, SIGNAL(itemSelectionChanged()), SLOT(selectionChanged()));
   connect(last_month, SIGNAL(clicked()), graph, SLOT(last_month()));
   connect(last_week, SIGNAL(clicked()), graph, SLOT(last_week()));
   connect(last_day, SIGNAL(clicked()), graph, SLOT(last_day()));
   connect(last_hour, SIGNAL(clicked()), graph, SLOT(last_hour()));
   connect(zoom_in, SIGNAL(clicked()), graph, SLOT(zoomIn()));
   connect(zoom_out, SIGNAL(clicked()), graph, SLOT(zoomOut()));
-
 }
 
 void KCollectdGui::selectionChanged()
 {
   std::vector<Graph::datasource> list;
-  
-  QListViewItemIterator i(listview);
-  for ( ;i.current(); ++i) {
-    if (i.current()->isSelected()) {
-      Graph::datasource l;
-      l.rrd = i.current()->text(2);
-      l.ds = i.current()->text(0);
-      l.label = i.current()->text(1);
-      list.push_back(l);
-    }
+
+  QTreeWidgetItemIterator i(listview, QTreeWidgetItemIterator::Selected);
+  for ( ;*i; ++i) {
+    Graph::datasource l;
+    l.rrd = (*i)->text(2);
+    l.ds = (*i)->text(3);
+    l.label = (*i)->text(1);
+    list.push_back(l);
   }
 
   graph->setup(list);

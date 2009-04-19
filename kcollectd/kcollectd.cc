@@ -19,6 +19,7 @@
  */
 
 #include <string>
+#include <iostream>
 #include <vector>
 #include <set>
 #include <sstream>
@@ -26,13 +27,14 @@
 
 #include <boost/filesystem.hpp>
 
-#include <kcmdlineargs.h>
-#include <kapplication.h>
-#include <klistview.h>
-#include <kmessagebox.h>
-#include <klocale.h>
+#include <QTreeWidgetItem>
 
-#include "../config.h"
+#include <KCmdLineArgs>
+#include <KApplication>
+#include <KMessageBox>
+#include <KLocale>
+
+// Qt4 #include "../config.h"
 
 #include "rrd_interface.h"
 #include "gui.h"
@@ -43,36 +45,55 @@
 #endif
 
 void get_datasources(const std::string &rrdfile, const std::string &info,
-      KListViewItem *item)
+      QTreeWidgetItem *item)
 {
   std::set<std::string> datasources;
   get_dsinfo(rrdfile, datasources);
-
-  for(std::set<std::string>::iterator i=datasources.begin();
-      i != datasources.end(); ++i){
-    new KListViewItem(item, *i, info + *i, rrdfile);
+ 
+  if (datasources.size() == 1) {
+    item->setFlags(item->flags() | Qt::ItemIsSelectable);
+    item->setText(1, (info + *datasources.begin()).c_str());
+    item->setText(2, rrdfile.c_str());
+    item->setText(3, (*datasources.begin()).c_str());
+  } else { 
+    for(std::set<std::string>::iterator i=datasources.begin();
+	i != datasources.end(); ++i){
+      QStringList SL(i->c_str());
+      SL.append((info + *i).c_str());
+      SL.append(rrdfile.c_str());
+      SL.append(i->c_str());
+      QTreeWidgetItem *it = new QTreeWidgetItem(item, SL);
+    }
   }
 }
 
-void get_rrds(const boost::filesystem::path rrdpath, KListView *listview)
+static QTreeWidgetItem *mkItem(QTreeWidget *listview, std::string s)
+{
+  return new QTreeWidgetItem(listview, QStringList(QString(s.c_str())));
+}
+
+static QTreeWidgetItem *mkItem(QTreeWidgetItem *item, std::string s)
+{
+  return new QTreeWidgetItem(item, QStringList(QString(s.c_str())));
+}
+
+void get_rrds(const boost::filesystem::path rrdpath, QTreeWidget *listview)
 {
   using namespace boost::filesystem;
   
   const directory_iterator end_itr;
   for (directory_iterator host(rrdpath); host != end_itr; ++host ) {
     if (is_directory(*host)) {
-      KListViewItem *hostitem = new KListViewItem(listview, host->leaf());
-      hostitem->setSelectable(false);
+      QTreeWidgetItem *hostitem = mkItem(listview, host->leaf());
+      hostitem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
       for (directory_iterator sensor(*host); sensor != end_itr; ++sensor ) {
 	if (is_directory(*sensor)) {
-	  KListViewItem *sensoritem = new KListViewItem(hostitem, 
-		sensor->leaf());
-	  sensoritem->setSelectable(false);
+	  QTreeWidgetItem *sensoritem = mkItem(hostitem, sensor->leaf());
+	  sensoritem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
 	  for (directory_iterator rrd(*sensor); rrd != end_itr; ++rrd ) {
 	    if (is_regular(*rrd) && extension(*rrd) == ".rrd") {
-	      KListViewItem *rrditem = new KListViewItem(sensoritem, 
-		    basename(*rrd));
-	      rrditem->setSelectable(false);
+	      QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
+	      rrditem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
 	      std::ostringstream info;
 	      info << host->leaf() << " . "
 		   << sensor->leaf() << " . "
@@ -91,9 +112,11 @@ int main(int argc, char **argv)
   using namespace boost::filesystem;
 
   std::vector<std::string> rrds;
-  
-  KCmdLineArgs::init(argc, argv, "kcollectd", i18n("KCollectd"), 
-	i18n("Viewer for Collectd-databases"), VERSION);
+  // QT4
+  #define VERSION "0.1"
+  KCmdLineArgs::init(argc, argv, "kcollectd", "",
+	ki18n("KCollectd"), VERSION, 
+	ki18n("Viewer for Collectd-databases"));
   KApplication a;
   KCollectdGui gui;
   
@@ -101,8 +124,8 @@ int main(int argc, char **argv)
     get_rrds(RRD_BASEDIR, gui.listview);
   } 
   catch(basic_filesystem_error<path> &e) {
-    KMessageBox::error(0, QString(i18n("Failed to read collectd-structure at "
-		      "\'%1\'\nTerminating.")).arg(RRD_BASEDIR));
+    KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
+		"Terminating.", QString(RRD_BASEDIR)));
     exit(1);
   } 
   catch(bad_rrdinfo &e) {
@@ -110,7 +133,7 @@ int main(int argc, char **argv)
     exit(2);
   }
   
-  a.setMainWidget(&gui);
+  a.setTopWidget(&gui);
   gui.show();
   return a.exec();
 }

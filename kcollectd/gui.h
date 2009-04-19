@@ -30,19 +30,19 @@
 
 class QLabel;
 class Graph;
-class KListView;
+class QTreeWidget;
 
 class KCollectdGui : public QWidget
 {
   Q_OBJECT;
 public:
-  KCollectdGui(QWidget *parent=0, const char *name=0);
+  KCollectdGui(QWidget *parent=0);
 
 public slots:  
   void selectionChanged();
   
 public:
-  KListView *listview;
+  QTreeWidget *listview;
   Graph *graph;
 };
 

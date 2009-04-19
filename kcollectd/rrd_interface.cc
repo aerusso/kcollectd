@@ -23,10 +23,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <set>
 #include <cstdlib>
+#include <cstring>
 
 #include <rrd.h>
 #include <errno.h>
@@ -128,45 +130,34 @@ void get_rrd_data (const std::string &file, const std::string &ds,
       time_t *start, time_t *end, unsigned long *step, const char *type, 
       std::vector<double> *result)
 {
-  int argc = 9;
-  char *argv[argc];
   unsigned long ds_cnt = 0;
   char **ds_name;
   rrd_value_t *data;
   char buffer[64];
   int status;
 
-  argv[0] = strdup("fetch");
-  argv[1] = strdup("--start");
-  sprintf(buffer, "%ld", *start);
-  argv[2] = strdup(buffer);
-  argv[3] = strdup("--end");
-  sprintf(buffer, "%ld", *end);
-  argv[4] = strdup(buffer);
-  argv[5] = strdup("--resolution");
-  sprintf(buffer, "%ld", *step);
-  argv[6] = strdup(buffer);
-  argv[7] = strdup(file.c_str());
-  argv[8] = strdup(type);
-  
-  status = rrd_fetch(argc, argv, start, end, step, &ds_cnt, &ds_name, &data);
+  result->clear();
+
+  status = rrd_fetch_r(file.c_str(), type, 
+	start, end, step, &ds_cnt, &ds_name, &data); 
   if (status != 0) {
     return;
   }
 
-  result->clear();
-
   const unsigned long length = (*end - *start) / *step;
 
   for(unsigned int i=0; i<ds_cnt; ++i) {
-    if (ds != ds_name[i])
+    if (ds != ds_name[i]) {
+      free(ds_name[i]);
       continue;
+    }
     
     for (unsigned int n = 0; n < length; ++n) 
       result->push_back (data[n * ds_cnt + i]);
     break;
-  }
 
-  for(int i=0; i<argc; ++i) 
-    free(argv[i]);
+    free(ds_name[i]);
+  }
+  free(ds_name);
+  free(data);
 }

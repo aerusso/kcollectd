@@ -24,11 +24,11 @@
 #include <vector>
 #include <cmath>
 
-#include <qpainter.h>
-#include <qpointarray.h>
-#include <qrect.h>
+#include <QPainter>
+#include <QPolygon>
+#include <QRect>
 
-#include <klocale.h>
+#include <KLocale>
 
 #include "rrd_interface.h"
 #include "misc.h"
@@ -38,13 +38,13 @@
 /**
  *
  */
-Graph::Graph(QWidget *parent, const char *name) :
-  QFrame(parent, name), data_is_valid(false), 
+Graph::Graph(QWidget *parent) :
+  QFrame(parent), data_is_valid(false), 
   end(time(0)), span(3600*24), step(1), font(QFont()),
   color_major(140, 115, 60), color_minor(80, 65, 34), color_graph_bg(0, 0, 0),
-  color_minmax(0, 100, 0), color_line(0, 255, 0)
+  color_minmax(0, 120, 0, 200), color_line(0, 255, 0)
 {
-  setFrameStyle(QFrame::GroupBoxPanel|QFrame::Plain);
+  setFrameStyle(QFrame::StyledPanel|QFrame::Plain);
   setMinimumWidth(300);
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -74,8 +74,8 @@ bool Graph::fetchAllData ()
   std::vector<datasource>::iterator i;
 
   for(i = dslist.begin(); i != dslist.end(); ++i) {
-    const char *file = i->rrd.ascii();
-    const char *ds = i->ds.ascii();    
+    const std::string file(i->rrd.toUtf8().data());
+    const std::string ds(i->ds.toUtf8().data());    
     copy_start = end - span;
     copy_end = end;
     step = 1;
@@ -110,18 +110,15 @@ void Graph::setup(std::vector<datasource> &list)
   dslist = list;
 }
 
-void Graph::drawHeader(int left, int right, int pos, const QString &text)
+void Graph::drawHeader(QPainter &paint, int left, int right, int pos, 
+	    const QString &text)
 {
-  QPainter paint(&offscreen);
   const QFontMetrics fontmetric(font);
-
-  // header
   paint.drawText((left+right)/2-fontmetric.width(text)/2, pos, text);
 }
 
-void Graph::drawFooter(int left, int right)
+void Graph::drawFooter(QPainter &paint, int left, int right)
 {
-  QPainter paint(&offscreen);
   const QFontMetrics fontmetric(font);
 
   QString format;
@@ -135,8 +132,8 @@ void Graph::drawFooter(int left, int right)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  QString buffer_from = Qstrftime(format, localtime(&start));
-  QString buffer_to = Qstrftime(format, localtime(&end));
+  QString buffer_from = Qstrftime(format.toAscii(), localtime(&start));
+  QString buffer_to = Qstrftime(format.toAscii(), localtime(&end));
   QString label = QString(i18n("from %1 to %2"))
     .arg(buffer_from)
     .arg(buffer_to);
@@ -146,10 +143,11 @@ void Graph::drawFooter(int left, int right)
 	label_y2, label);
 }
 
-void Graph::drawXLines(const QRect &rect, time_iterator i, QColor color)
+void Graph::drawXLines(QPainter &paint, const QRect &rect, 
+      time_iterator i, QColor color)
 {
   if (!i.valid()) return;
-
+  
   // setting up linear mappings
   const linMap xmap(start, rect.left(), end, rect.right());
  
@@ -158,34 +156,36 @@ void Graph::drawXLines(const QRect &rect, time_iterator i, QColor color)
     return;
 
   // draw lines
-  QPainter paint(&offscreen);
+  paint.save();
   paint.setPen(color);
   for(; *i <= end; ++i) {
     int x = xmap(*i);
     paint.drawLine(x, rect.top(), x, rect.bottom());
   }
+  paint.restore();
 }
 
-void Graph::drawXLabel(int left, int right, 
+void Graph::drawXLabel(QPainter &paint, int left, int right, 
       time_iterator i, QString format, bool center)
 {
   if (!i.valid()) return;
+  paint.save();
 
   const QFontMetrics fontmetric(font);
-  QPainter paint(&offscreen);
   
   // setting up linear mappings
   const linMap xmap(start, left, end, right);
 
   // draw labels
-  paint.setPen(foregroundColor());
+  paint.setPen(palette().windowText().color());
   if (center) --i;
   for(; *i <= end; ++i) {
     // special handling for localtime/mktime on DST
     time_t t = center ? *i + i.interval() / 2 : *i;
     tm tm;
     localtime_r(&t, &tm);
-    if(QString label = Qstrftime(i18n(format), &tm)) {
+    QString label = Qstrftime(i18n(format.toAscii()).toAscii(), &tm);
+    if(! label.isNull()) {
       const int width = fontmetric.width(label);
       int x = center 
 	? xmap(*i + i.interval() / 2) - width / 2
@@ -195,6 +195,7 @@ void Graph::drawXLabel(int left, int right,
 	paint.drawText(x, label_y1, label);
     }
   }
+  paint.restore();
 }
 
 void Graph::findXGrid(int width, QString &format, bool &center,
@@ -242,7 +243,8 @@ void Graph::findXGrid(int width, QString &format, bool &center,
 
   for(int i=0; axis_params[i].maxspan; ++i) {
     if (time_span < axis_params[i].maxspan) {
-      if(QString label = Qstrftime(axis_params[i].format, localtime(&now))) {
+      QString label = Qstrftime(axis_params[i].format, localtime(&now));
+      if(!label.isNull()) {
 	const int textwidth = fontmetric.width(label) 
 	  * time_span / axis_params[i].major * 3 / 2;
 	if (textwidth < width) {
@@ -274,7 +276,8 @@ void Graph::findXGrid(int width, QString &format, bool &center,
       }
     }
   }
-  if(QString label = Qstrftime("%Y", localtime(&now))) {
+  QString label = Qstrftime("%Y", localtime(&now));
+  if(!label.isNull()) {
     const int textwidth = fontmetric.width(label) * 3 / 2;
     // fixed-point calculation with 16 bit fraction.
     int num = (time_span * textwidth * 16) / ( year * width);
@@ -294,13 +297,13 @@ void Graph::findXGrid(int width, QString &format, bool &center,
   }
 }
 
-void Graph::drawYLabel(const QRect &rect, const Range &y_range, double base)
+void Graph::drawYLabel(QPainter &paint, const QRect &rect, 
+      const Range &y_range, double base)
 {
   // setting up linear mappings
   const linMap ymap(y_range.min(), rect.bottom(), y_range.max(), rect.top());
 
   const QFontMetrics fontmetric(font);
-  QPainter paint(&offscreen);
 
   // SI Unit for nice display
   std::string SI;
@@ -322,52 +325,50 @@ void Graph::drawYLabel(const QRect &rect, const Range &y_range, double base)
   double max = floor(y_range.max()/base)*base;
   for(double i = min; i <= max; i += base) {
     const std::string label = si_number(i, 6, SI, mag);
-    const int x = rect.left() - fontmetric.width(label) - 4;
-    paint.drawText(x,  ymap(i) + fontmetric.ascent()/2, label);
+    const int x = rect.left() - fontmetric.width(label.c_str()) - 4;
+    paint.drawText(x,  ymap(i) + fontmetric.ascent()/2, label.c_str());
   }
 }
 
-void Graph::drawYLines(const QRect &rect, const Range &y_range, double base, 
-      QColor color)
+void Graph::drawYLines(QPainter &paint, const QRect &rect, 
+      const Range &y_range, double base, QColor color)
 {
   // setting up linear mappings
   const linMap ymap(y_range.min(), rect.bottom(), y_range.max(), rect.top());
 
   const QFontMetrics fontmetric(font);
 
-  QPainter paint(&offscreen);
-
   // adjust linespacing
-  if (base * -ymap.m() < 5.0)
+  if (base * -ymap.m() < 5.0) {
     if (2.0 * base * -ymap.m() > 5.0) 
       base = base * 2.0;
     else 
       base = base * 5.0;
+  }
 
   // and return if unsufficient
   if (base * -ymap.m() < 5) return;
 
   // draw lines
+  paint.save();
   paint.setPen(color);
   double min = ceil(y_range.min()/base)*base;
   double max = y_range.max();
   for(double i = min; i < max; i += base) {
     paint.drawLine(rect.left(), ymap(i), rect.right(), ymap(i));
   }
+  paint.restore();
 }
 
 /**
  * draw the graph itself
  */
-void Graph::drawGraph(const QRect &rect, const datasource &ds, 
+void Graph::drawGraph(QPainter &paint, const QRect &rect, const datasource &ds, 
       double min, double max)
 {
-  QPainter paint(&offscreen);
-
   const std::vector<double> &avg_data = ds.avg_data;
   const std::vector<double> &min_data = ds.min_data;
   const std::vector<double> &max_data = ds.max_data;
-
 
   if (avg_data.empty())
     return;
@@ -379,13 +380,13 @@ void Graph::drawGraph(const QRect &rect, const datasource &ds,
   const linMap ymap(min, rect.bottom(), max, rect.top());
 
   // define once use many
-  QPointArray points;
+  QPolygon points;
 
   // draw min/max backshadow
+  paint.save();
   if (!min_data.empty() && !max_data.empty()) {  
-    paint.setPen(color_minmax);
+    paint.setPen(Qt::NoPen);
     paint.setBrush(QBrush(color_minmax));
-    paint.setBrush(QBrush(QColor(qRgba(0,100,0,70))));
     for(int i=0; i<size; ++i) {
       while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
       int l = i;
@@ -419,6 +420,7 @@ void Graph::drawGraph(const QRect &rect, const datasource &ds,
       paint.drawPolyline(points);
     }
   }
+  paint.restore();
 }
 
 /**
@@ -435,7 +437,7 @@ void Graph::drawAll()
     fetchAllData ();  
 
   // resize offscreen-map to widget-size
-  offscreen.resize(contentsRect().width(), contentsRect().height());
+  offscreen = QPixmap(contentsRect().width(), contentsRect().height());
 
   // clear
   QPainter paint(&offscreen);
@@ -461,8 +463,8 @@ void Graph::drawAll()
   QString format_x;
   bool center_x;
   findXGrid(graphrect.width(), format_x, center_x, minor_x, major_x, label_x);
-  drawFooter(graphrect.left(), graphrect.right());
-  drawXLabel(graphrect.left(), graphrect.right(), label_x, format_x, center_x);
+  drawFooter(paint, graphrect.left(), graphrect.right());
+  drawXLabel(paint, graphrect.left(), graphrect.right(), label_x, format_x, center_x);
  
   const int graphheight = graphrect.height() / numgraphs;
   const int panelheight = graphheight - 2 - marg - labelheight;
@@ -484,18 +486,19 @@ void Graph::drawAll()
 
     // black graph-background
     paint.fillRect(panelrect, color_graph_bg);
-    
+
     // draw minor, major, graph
-    drawHeader(panelrect.left(), panelrect.right(), 
+    drawHeader(paint, panelrect.left(), panelrect.right(), 
 	  panelrect.top() - fontmetric.descent() - marg/2, i->label);
-    drawXLines(panelrect, minor_x, color_minor);
-    drawYLines(panelrect, y_range, base/10, color_minor);
-    drawXLines(panelrect, major_x, color_major);
-    drawYLines(panelrect, y_range, base, color_major);
-    drawYLabel(panelrect, y_range, base);
-    drawGraph(panelrect, *i, y_range.min(), y_range.max());
+    drawXLines(paint, panelrect, minor_x, color_minor);
+    drawYLines(paint, panelrect, y_range, base/10, color_minor);
+    drawXLines(paint, panelrect, major_x, color_major);
+    drawYLines(paint, panelrect, y_range, base, color_major);
+    drawYLabel(paint, panelrect, y_range, base);
+    drawGraph(paint, panelrect, *i, y_range.min(), y_range.max());
   }
-  
+  paint.end();
+
   // copy to screen
   QPainter(this).drawPixmap(contentsRect(), offscreen);
 }
@@ -536,7 +539,7 @@ void Graph::mouseDoubleClickEvent(QMouseEvent *)
  */
 void Graph::mouseMoveEvent(QMouseEvent *e)
 {
-  if (e->state() != LeftButton && e->state() != MidButton) {
+  if (! (e->buttons() & Qt::LeftButton)) {
     e->ignore();
     return;
   }
@@ -558,7 +561,7 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
     end = now + span * 2 / 3;
 
   data_is_valid = false;
-  drawAll();
+  update();
 }
 
 /**
@@ -570,7 +573,7 @@ void Graph::last(time_t new_span)
   span = new_span;
   start = end - span;
   data_is_valid = false;
-  drawAll();
+  update();
 }
 
 /**
@@ -591,5 +594,5 @@ void Graph::zoom(double factor)
     end = now + (span * 2) / 3;
 
   data_is_valid = false;
-  drawAll();
+  update();
 }
