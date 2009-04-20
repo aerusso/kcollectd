@@ -105,6 +105,7 @@ void get_rrds(const boost::filesystem::path rrdpath, QTreeWidget *listview)
       }
     }
   }
+  listview->sortItems(0, Qt::AscendingOrder);
 }
 
 int main(int argc, char **argv)
