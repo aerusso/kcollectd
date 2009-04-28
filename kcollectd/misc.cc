@@ -38,6 +38,8 @@ bool si_char(double d, std::string &s, double &m)
     double factor;
     const char * const si_char;
   } si_table[] = {
+    { 1e-24, "y" },
+    { 1e-21, "z" },
     { 1e-18, "a" },
     { 1e-15, "f" },
     { 1e-12, "p" },
@@ -51,7 +53,8 @@ bool si_char(double d, std::string &s, double &m)
     { 1e12,  "T" },
     { 1e15,  "P" },
     { 1e18,  "E" },
-    { 1e21,  0   },
+    { 1e21,  "Z" },
+    { 1e24,  "Y" },
   };
   const int tablesize = sizeof(si_table)/sizeof(*si_table);
 

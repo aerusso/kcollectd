@@ -40,9 +40,14 @@
  */
 Graph::Graph(QWidget *parent) :
   QFrame(parent), data_is_valid(false), 
-  end(time(0)), span(3600*24), step(1), font(QFont()),
-  color_major(140, 115, 60), color_minor(80, 65, 34), color_graph_bg(0, 0, 0),
-  color_minmax(0, 120, 0, 200), color_line(0, 255, 0)
+  start(time(0)-3600*24), span(3600*24), step(1), font(QFont()),
+  color_major(140, 115, 60), color_minor(80, 65, 34), 
+  color_graph_bg(0, 0, 0),
+  color_minmax(0, 120, 0, 200), color_line(0, 255, 0),
+  //color_major(255, 180, 180), color_minor(220, 220, 220), 
+  //color_graph_bg(255, 255, 255),
+  //color_minmax(180, 255, 180, 200), color_line(0, 170, 0),
+  autoUpdateTimer(-1)
 {
   setFrameStyle(QFrame::StyledPanel|QFrame::Plain);
   setMinimumWidth(300);
@@ -69,31 +74,31 @@ bool Graph::fetchAllData ()
   if (dslist.empty())
     return (false);
 
-  time_t copy_start, copy_end;
-
   std::vector<datasource>::iterator i;
 
   for(i = dslist.begin(); i != dslist.end(); ++i) {
     const std::string file(i->rrd.toUtf8().data());
     const std::string ds(i->ds.toUtf8().data());    
-    copy_start = end - span;
-    copy_end = end;
+
+    data_start = start;
+    data_end = start + span;
     step = 1;
-    get_rrd_data (file, ds, &copy_start, &copy_end, &step, "MIN", &i->min_data);
+    get_rrd_data (file, ds, &data_start, &data_end, &step, 
+	  "MIN", &i->min_data);
     
-    copy_start = end-span;
-    copy_end = end;
+    data_start = start;
+    data_end = start + span;
     step = 1;
-    get_rrd_data (file, ds, &copy_start, &copy_end, &step, "MAX", &i->max_data);
+    get_rrd_data (file, ds, &data_start, &data_end, &step, 
+	  "MAX", &i->max_data);
     
-    copy_start = end - span;
-    copy_end = end;
+    data_start = start;
+    data_end = start + span;
     step = 1;
-    get_rrd_data (file, ds, &copy_start, &copy_end, &step, "AVERAGE", &i->avg_data);
+    get_rrd_data (file, ds, &data_start, &data_end, &step,
+	  "AVERAGE", &i->avg_data);
   }    
   data_is_valid = true;
-  end = copy_end;
-  start = copy_start;
 
   return (true);
 }
@@ -122,7 +127,7 @@ void Graph::drawFooter(QPainter &paint, int left, int right)
   const QFontMetrics fontmetric(font);
 
   QString format;
-  time_t time_span = end - start;
+  time_t time_span = data_end - data_start;
   if (time_span > 3600*24*356)
     format = i18n("%Y-%m");
   else if (time_span > 3600*24*31)
@@ -132,8 +137,8 @@ void Graph::drawFooter(QPainter &paint, int left, int right)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  QString buffer_from = Qstrftime(format.toAscii(), localtime(&start));
-  QString buffer_to = Qstrftime(format.toAscii(), localtime(&end));
+  QString buffer_from = Qstrftime(format.toAscii(), localtime(&data_start));
+  QString buffer_to = Qstrftime(format.toAscii(), localtime(&data_end));
   QString label = QString(i18n("from %1 to %2"))
     .arg(buffer_from)
     .arg(buffer_to);
@@ -149,7 +154,7 @@ void Graph::drawXLines(QPainter &paint, const QRect &rect,
   if (!i.valid()) return;
   
   // setting up linear mappings
-  const linMap xmap(start, rect.left(), end, rect.right());
+  const linMap xmap(data_start, rect.left(), data_end, rect.right());
  
   // if lines are to close draw nothing
   if (i.interval() * xmap.m() < 3) 
@@ -158,7 +163,7 @@ void Graph::drawXLines(QPainter &paint, const QRect &rect,
   // draw lines
   paint.save();
   paint.setPen(color);
-  for(; *i <= end; ++i) {
+  for(; *i <= data_end; ++i) {
     int x = xmap(*i);
     paint.drawLine(x, rect.top(), x, rect.bottom());
   }
@@ -174,12 +179,12 @@ void Graph::drawXLabel(QPainter &paint, int left, int right,
   const QFontMetrics fontmetric(font);
   
   // setting up linear mappings
-  const linMap xmap(start, left, end, right);
+  const linMap xmap(data_start, left, data_end, right);
 
   // draw labels
   paint.setPen(palette().windowText().color());
   if (center) --i;
-  for(; *i <= end; ++i) {
+  for(; *i <= data_end; ++i) {
     // special handling for localtime/mktime on DST
     time_t t = center ? *i + i.interval() / 2 : *i;
     tm tm;
@@ -238,7 +243,7 @@ void Graph::findXGrid(int width, QString &format, bool &center,
   };
 
   const QFontMetrics fontmetric(font);
-  const time_t time_span = end - start;
+  const time_t time_span = data_end - data_start;
   const time_t now = time(0);
 
   for(int i=0; axis_params[i].maxspan; ++i) {
@@ -250,23 +255,23 @@ void Graph::findXGrid(int width, QString &format, bool &center,
 	if (textwidth < width) {
 	  switch(axis_params[i].align) {
 	  case align_tzalign:
-	    minor_x.set(start, axis_params[i].minor);
-	    major_x.set(start, axis_params[i].major);
-	    label_x.set(start, axis_params[i].major);
+	    minor_x.set(data_start, axis_params[i].minor);
+	    major_x.set(data_start, axis_params[i].major);
+	    label_x.set(data_start, axis_params[i].major);
 	    format = axis_params[i].format;
 	    center = axis_params[i].center;
 	    break;
 	  case align_week:
-	    minor_x.set(start, day);
-	    major_x.set(start, 1, time_iterator::weeks);
-	    label_x.set(start, 1, time_iterator::weeks);
+	    minor_x.set(data_start, day);
+	    major_x.set(data_start, 1, time_iterator::weeks);
+	    label_x.set(data_start, 1, time_iterator::weeks);
 	    format = axis_params[i].format;
 	    center = axis_params[i].center;
 	    break;
 	  case align_month:
-	    minor_x.set(start, axis_params[i].minor);
-	    major_x.set(start, 1, time_iterator::month);
-	    label_x.set(start, 1, time_iterator::month);
+	    minor_x.set(data_start, axis_params[i].minor);
+	    major_x.set(data_start, 1, time_iterator::month);
+	    label_x.set(data_start, 1, time_iterator::month);
 	    format = axis_params[i].format;
 	    center = axis_params[i].center;
 	    break;
@@ -282,15 +287,15 @@ void Graph::findXGrid(int width, QString &format, bool &center,
     // fixed-point calculation with 16 bit fraction.
     int num = (time_span * textwidth * 16) / ( year * width);
     if (num < 16 ) {
-      minor_x.set(start, 1, time_iterator::month);
-      major_x.set(start, 1, time_iterator::years);
-      label_x.set(start, 1, time_iterator::years);
+      minor_x.set(data_start, 1, time_iterator::month);
+      major_x.set(data_start, 1, time_iterator::years);
+      label_x.set(data_start, 1, time_iterator::years);
       format = "%Y";
       center = true;
     } else {
-      minor_x.set(start, 1, time_iterator::years);
-      major_x.set(start, (num+15)/16, time_iterator::years);
-      label_x.set(start, (num+15)/16, time_iterator::years);
+      minor_x.set(data_start, 1, time_iterator::years);
+      major_x.set(data_start, (num+15)/16, time_iterator::years);
+      label_x.set(data_start, (num+15)/16, time_iterator::years);
       format = "%Y";
       center = false;
     }
@@ -384,6 +389,7 @@ void Graph::drawGraph(QPainter &paint, const QRect &rect, const datasource &ds,
 
   // draw min/max backshadow
   paint.save();
+  // paint.setRenderHint(QPainter::Antialiasing);
   if (!min_data.empty() && !max_data.empty()) {  
     paint.setPen(Qt::NoPen);
     paint.setBrush(QBrush(color_minmax));
@@ -441,7 +447,9 @@ void Graph::drawAll()
 
   // clear
   QPainter paint(&offscreen);
-  paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
+  paint.eraseRect(0, 0, width(), height());
+  //paint.fillRect(0, 0, width(), height(), QColor(245, 245, 245));
+  
 
   // margin calculations
   // place for labels at the left and two line labels below
@@ -484,7 +492,7 @@ void Graph::drawAll()
 	  graphrect.width(),
 	  panelheight);
 
-    // black graph-background
+    // graph-background
     paint.fillRect(panelrect, color_graph_bg);
 
     // draw minor, major, graph
@@ -513,6 +521,35 @@ void Graph::paintEvent(QPaintEvent *e)
 }
 
 /**
+ * switch auto-update on or off
+ * 
+ * Auto-update does a update every 10 sec.
+ */
+void Graph::autoUpdate(bool active)
+{
+  if (active == true) {
+    if (autoUpdateTimer == -1) {
+      autoUpdateTimer = startTimer(10000);
+    }
+  } else {
+    if (autoUpdateTimer != -1) {
+      killTimer(autoUpdateTimer);
+      autoUpdateTimer = -1;
+    }
+  }
+}
+
+/**
+ *
+ */
+void Graph::timerEvent(QTimerEvent *event)
+{
+  data_is_valid = false;
+  start += 10;
+  update();
+}
+
+/**
  * Qt mouse-press-event
  */
 void Graph::mousePressEvent(QMouseEvent *e)
@@ -520,8 +557,8 @@ void Graph::mousePressEvent(QMouseEvent *e)
   origin_x = e->x ();
   origin_y = e->y ();
 
-  origin_start = start;
-  origin_end = end;
+  origin_start = data_start;
+  origin_end = data_end;
 }
 
 void Graph::mouseReleaseEvent(QMouseEvent *)
@@ -555,10 +592,10 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
   int offset = (x - origin_x) * (origin_end - origin_start) 
     / graphrect.width();
 
-  end = origin_end - offset;
+  start = origin_start - offset;
   const time_t now = time(0);
-  if (end > now + span * 2 / 3 )
-    end = now + span * 2 / 3;
+  if (start + span > now + span * 2 / 3 )
+    start = now - span / 3;
 
   data_is_valid = false;
   update();
@@ -569,9 +606,9 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
  */
 void Graph::last(time_t new_span)
 {
-  end = time(0);
+  data_end = time(0);
   span = new_span;
-  start = end - span;
+  start = data_end - span;
   data_is_valid = false;
   update();
 }
@@ -584,14 +621,14 @@ void Graph::zoom(double factor)
   // don't zoom to wide
   if (factor < 1 && span*factor < width()) return;
 
-  time_t time_center = end - span / 2;  
+  time_t time_center = data_end - span / 2;  
   if (time_center < 0) return;
   span *= factor;
-  end = time_center + (span / 2);
+  start = time_center - (span / 2);
 
   const time_t now = time(0);
-  if (end > now + (span * 2) / 3 )
-    end = now + (span * 2) / 3;
+  if (start + span > now + span * 2 / 3 )
+    start = now - span / 3;
 
   data_is_valid = false;
   update();

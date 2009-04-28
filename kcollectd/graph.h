@@ -72,7 +72,8 @@ class Graph : public QFrame
   virtual void mouseDoubleClickEvent(QMouseEvent *e);
   virtual void mouseMoveEvent(QMouseEvent *e);
   virtual void wheelEvent(QWheelEvent *e);
- 
+  virtual void timerEvent(QTimerEvent *event);
+				    
 public slots:
   virtual void last_month();
   virtual void last_week();
@@ -80,6 +81,7 @@ public slots:
   virtual void last_hour();
   virtual void zoomIn();
   virtual void zoomOut();
+  virtual void autoUpdate(bool active);
 
  private:
   bool fetchAllData();
@@ -102,10 +104,11 @@ public slots:
   // rrd-data
   std::vector<datasource> dslist;
   bool data_is_valid;
-  time_t start;	// real start of data (from rrd_fetch)
-  time_t end;	// real end of data (from rrd_fetch)
-  time_t span;	// should-be size of data (may differ from end-start)
-  time_t tz_off; // offset of the local timezone from GMT
+  time_t start;		// user set start of graph
+  time_t span;		// user-set span of graph
+  time_t data_start;	// real start of data (from rrd_fetch)
+  time_t data_end;	// real end of data (from rrd_fetch)
+  time_t tz_off; 	// offset of the local timezone from GMT
   unsigned long step;
 
   // technical helpers
@@ -119,6 +122,9 @@ public slots:
   int label_y1, label_y2;
   QColor color_major, color_minor, color_graph_bg;
   QColor color_minmax, color_line;
+
+  // Auto-Update
+  int autoUpdateTimer;
 };
 
 inline void Graph::last_month()

@@ -68,6 +68,10 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), "");
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
+  QPushButton *auto_update = new QPushButton(KIcon("chronometer"), "");
+  auto_update->setCheckable(true);
+  auto_update->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  hbox2->addWidget(auto_update);
 
   connect(listview, SIGNAL(itemSelectionChanged()), SLOT(selectionChanged()));
   connect(last_month, SIGNAL(clicked()), graph, SLOT(last_month()));
@@ -76,6 +80,8 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   connect(last_hour, SIGNAL(clicked()), graph, SLOT(last_hour()));
   connect(zoom_in, SIGNAL(clicked()), graph, SLOT(zoomIn()));
   connect(zoom_out, SIGNAL(clicked()), graph, SLOT(zoomOut()));
+  connect(auto_update, SIGNAL(toggled(bool)), 
+	graph, SLOT(autoUpdate(bool)));
 }
 
 void KCollectdGui::selectionChanged()
