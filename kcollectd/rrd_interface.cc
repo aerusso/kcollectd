@@ -98,8 +98,10 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
 
   // call rrdtool info <filename>
   char * rrdf = strdup(rrdfile.c_str()); // This might be gratuitous (?!)
-  char * const command[4] = { (char *)"rrdtool", (char *)"info", rrdf, 0};
+  char * const command[4] = { strdup("rrdtool"), strdup("info"), rrdf, 0};
   FILE *in = popenvp("rrdtool", command, "r");
+  free(command[0]);
+  free(command[1]);
   free(rrdf);
   if (!in) {
     throw bad_rrdinfo();
@@ -109,7 +111,14 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
   int c;
   string line;
   line.reserve(128);
-  while((c = getc(in)) != EOF) {
+  while (true) {
+    clearerr(in);
+    c = fgetc(in);
+    if (ferror(in) && errno == EINTR) 
+      continue;
+    if (c == EOF)
+      break;
+    
     if (c == '\n') {
       if (!line.compare(0, 3, "ds[")) {
 	string::size_type close = line.find(']');
@@ -121,6 +130,7 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
       line += static_cast<char>(c);
    }
   }
+
   if (pclosevp(in)) {
     throw bad_rrdinfo();
   }
