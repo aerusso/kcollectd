@@ -51,7 +51,7 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
   get_dsinfo(rrdfile, datasources);
  
   if (datasources.size() == 1) {
-    item->setFlags(item->flags() | Qt::ItemIsSelectable);
+    item->setFlags(item->flags() | Qt::ItemIsSelectable); 
     item->setText(1, (info + *datasources.begin()).c_str());
     item->setText(2, rrdfile.c_str());
     item->setText(3, (*datasources.begin()).c_str());
@@ -62,8 +62,8 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
       SL.append((info + *i).c_str());
       SL.append(rrdfile.c_str());
       SL.append(i->c_str());
-      QTreeWidgetItem *it = new QTreeWidgetItem(item, SL);
-    }
+      QTreeWidgetItem *dsitem = new QTreeWidgetItem(item, SL);
+   }
   }
 }
 
@@ -89,11 +89,11 @@ void get_rrds(const boost::filesystem::path rrdpath, QTreeWidget *listview)
       for (directory_iterator sensor(*host); sensor != end_itr; ++sensor ) {
 	if (is_directory(*sensor)) {
 	  QTreeWidgetItem *sensoritem = mkItem(hostitem, sensor->leaf());
-	  sensoritem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
+	  sensoritem->setFlags(sensoritem->flags() & ~Qt::ItemIsSelectable);
 	  for (directory_iterator rrd(*sensor); rrd != end_itr; ++rrd ) {
 	    if (is_regular(*rrd) && extension(*rrd) == ".rrd") {
 	      QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
-	      rrditem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
+	      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
 	      std::ostringstream info;
 	      info << host->leaf() << " . "
 		   << sensor->leaf() << " . "
