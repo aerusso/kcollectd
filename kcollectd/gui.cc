@@ -29,6 +29,7 @@
 #include <KIconLoader>
 #include <KGlobal>
 #include <KLocale>
+#include <QWhatsThis>
 
 #include "graph.h"
 #include "gui.moc"
@@ -62,13 +63,24 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   hbox2->addWidget(last_day);
   KPushButton *last_hour = new KPushButton(i18n("last hour"));
   hbox2->addWidget(last_hour);
-  KPushButton *zoom_in = new KPushButton(KIcon("zoom-in"), "");
+  KPushButton *zoom_in = new KPushButton(KIcon("zoom-in"), QString());
+  zoom_in->setToolTip(i18n("increases magnification"));
   zoom_in->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_in);
-  KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), "");
+  KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), QString());
+  zoom_out->setToolTip(i18n("reduces magnification"));
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
-  QPushButton *auto_update = new QPushButton(KIcon("chronometer"), "");
+  KPushButton *auto_update = new KPushButton(KIcon("chronometer"), QString());
+  auto_update->setToolTip(i18n("toggle automatic update-and-follow mode."));
+  auto_update->setWhatsThis(i18n("<p>This button toggles the "
+	      "automatic update-and-follow mode</p>"
+	      "<p>The automatic update-and-follow mode updates the graph "
+	      "every ten seconds. "
+	      "In this mode the graph still can be zoomed, but always displays "
+	      "<i>now</i> near the right edge and "
+	      "can not be scrolled any more.<br />"
+	      "This makes kcollectd some kind of status monitor.</p>"));
   auto_update->setCheckable(true);
   auto_update->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(auto_update);

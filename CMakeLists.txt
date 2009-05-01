@@ -10,7 +10,7 @@ include (KDE4Defaults)
 # Basedir for collectd
 if(NOT RRD_BASEDIR)
   set(RRD_BASEDIR "/var/lib/collectd/rrd")
-endif(RRD_BASEDIR)
+endif(NOT RRD_BASEDIR)
 set(RRD_BASEDIR ${RRD_BASEDIR} CACHE PATH "path to collectd-data")
 
 # config.h

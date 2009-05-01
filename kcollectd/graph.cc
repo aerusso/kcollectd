@@ -530,6 +530,10 @@ void Graph::autoUpdate(bool active)
   if (active == true) {
     if (autoUpdateTimer == -1) {
       autoUpdateTimer = startTimer(10000);
+      timer_diff = 0.99 * span;
+      start = time(0) - timer_diff;
+      data_is_valid = false;
+      update();
     }
   } else {
     if (autoUpdateTimer != -1) {
@@ -545,7 +549,7 @@ void Graph::autoUpdate(bool active)
 void Graph::timerEvent(QTimerEvent *event)
 {
   data_is_valid = false;
-  start += 10;
+  start = time(0) - timer_diff;
   update();
 }
 
@@ -581,6 +585,9 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
     return;
   }
 
+  if (autoUpdateTimer != -1) 
+    return;
+
   int x = e->x();
   int y = e->y();
 
@@ -597,6 +604,9 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
   if (start + span > now + span * 2 / 3 )
     start = now - span / 3;
 
+  if (autoUpdateTimer != -1) 
+    timer_diff = time(0) - start;
+
   data_is_valid = false;
   update();
 }
@@ -606,9 +616,14 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
  */
 void Graph::last(time_t new_span)
 {
-  data_end = time(0);
   span = new_span;
-  start = data_end - span;
+  
+  if (autoUpdateTimer != -1) {
+    timer_diff = 0.99 * span;
+    start = time(0) - timer_diff;
+  } else {
+    start = time(0) - 0.99 * span;
+  }
   data_is_valid = false;
   update();
 }
@@ -630,6 +645,11 @@ void Graph::zoom(double factor)
   if (start + span > now + span * 2 / 3 )
     start = now - span / 3;
 
+  if (autoUpdateTimer != -1) {
+    timer_diff = 0.99 * span;
+    start = time(0) - timer_diff;
+  }
+  
   data_is_valid = false;
   update();
 }

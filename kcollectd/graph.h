@@ -125,6 +125,7 @@ public slots:
 
   // Auto-Update
   int autoUpdateTimer;
+  time_t timer_diff;
 };
 
 inline void Graph::last_month()
