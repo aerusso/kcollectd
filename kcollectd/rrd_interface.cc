@@ -36,106 +36,55 @@
 #include "rrd_interface.h"
 
 /**
- * call a command like popen but use execvp 
- * 
- * see execvp(3) and popen(3) for documantation
- * this is based on code from glibc.
+ * wrapper for rrd_info taking a string instead of char*
+ *
+ * copying the filename is probably unnecessary, but the signature of
+ * rrd_info does not guarantee leaving it alone.
  */
-FILE *popenvp(const char *command, char *const argv[], const char *mode)
+static inline 
+rrd_info_t *rrd_info(int, const std::string &filename)
 {
-  int parent_end, child_end;
-  int pipe_fds[2];
-  pid_t child_pid;
-
-  if (pipe(pipe_fds) < 0) return NULL;
-  if (mode[0] == 'r' && mode[1] == '\0') {
-    parent_end = pipe_fds[0];
-    child_end = pipe_fds[1];
-  } else if (mode[0] == 'w' && mode[1] == '\0') {
-    parent_end = pipe_fds[1];
-    child_end = pipe_fds[0];
-  } else {
-    close(pipe_fds[0]);
-    close(pipe_fds[1]);
-    errno = EINVAL;
-    return NULL;
-  }
-  child_pid = fork();
-  if (child_pid == 0) {
-    int child_std_end = mode[0] == 'r' ? 1 : 0;
-    
-    if (child_end != child_std_end) {
-      dup2(child_end, child_std_end);
-      close(child_end);
-    }
-
-    execvp(command, argv);
-    exit (127);
-  }
-  close(child_end);
-  if (child_pid < 0) {
-    close(parent_end);
-    return NULL;
-  }
-  return fdopen(parent_end, mode);
-}
-
-int pclosevp(FILE *stream)
-{
-  return fclose(stream);
+  char c_file[filename.length()+1];
+  filename.copy(c_file, std::string::npos);
+  c_file[filename.length()] = 0;
+  char * arg[] = { 0, c_file, 0 };
+  return rrd_info(2, arg);
 }
 
 /**
- * read the datasources-names of a rrd from “rrdtools info”, because
- * there is no official API to get them
+ * read the datasources-names of a rrd
+ *
+ * using rrd_info
  */
 void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
 {
   using namespace std;
 
-  // just to be sure
   list.clear();
 
-  // call rrdtool info <filename>
-  char * rrdf = strdup(rrdfile.c_str()); // This might be gratuitous (?!)
-  char * const command[4] = { strdup("rrdtool"), strdup("info"), rrdf, 0};
-  FILE *in = popenvp("rrdtool", command, "r");
-  free(command[0]);
-  free(command[1]);
-  free(rrdf);
-  if (!in) {
-    throw bad_rrdinfo();
-  } 
-
-  // read in the output and find ds[...] lines
-  int c;
-  string line;
-  line.reserve(128);
-  while (true) {
-    clearerr(in);
-    c = fgetc(in);
-    if (ferror(in) && errno == EINTR) 
-      continue;
-    if (c == EOF)
-      break;
-    
-    if (c == '\n') {
-      if (!line.compare(0, 3, "ds[")) {
-	string::size_type close = line.find(']');
-	if (close != string::npos)
-	  list.insert(line.substr(3, close-3));
+  rrd_info_t *infos = rrd_info(2, rrdfile);
+  rrd_info_t *i = infos;
+  while (i) {
+    string line(i->key);
+    if (line.substr(0,3) == "ds[") {
+      int e =  line.find("].type");
+      if (e != string::npos) {
+	string name = line.substr(3, line.find("].type")-3);
+	list.insert(name);
       }
-      line.clear();
-    } else {
-      line += static_cast<char>(c);
-   }
+    }
+    i = i->next;
   }
-
-  if (pclosevp(in)) {
-    throw bad_rrdinfo();
-  }
+  if (infos) 
+    rrd_info_free(infos);  
 }
 
+/**
+ * gets data from a rrd
+ *
+ * @a start and @a end may get changed from this function and represent
+ * the start and end of the data returned.
+ */
 void get_rrd_data (const std::string &file, const std::string &ds, 
       time_t *start, time_t *end, unsigned long *step, const char *type, 
       std::vector<double> *result)
