@@ -1,5 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
-# This file is put in the public domain.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
@@ -7,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-23 23:07+0200\n"
+"POT-Creation-Date: 2009-05-03 13:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,47 +16,47 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: graph.cc:210
+#: graph.cc:210 ../kcollectd/graph.cc:132
 msgid "%Y-%m"
 msgstr ""
 
-#: graph.cc:212
+#: graph.cc:212 ../kcollectd/graph.cc:134
 msgid "%A %Y-%m-%d"
 msgstr ""
 
-#: graph.cc:214
+#: graph.cc:214 ../kcollectd/graph.cc:136
 msgid "%A %Y-%m-%d %H:%M"
 msgstr ""
 
-#: graph.cc:216
+#: graph.cc:216 ../kcollectd/graph.cc:138
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: graph.cc:220
+#: graph.cc:220 ../kcollectd/graph.cc:142
 msgid "from %1 to %2"
 msgstr ""
 
-#: graph.cc:314
+#: graph.cc:314 ../kcollectd/graph.cc:240
 msgid "week %V"
 msgstr ""
 
-#: gui.cc:42
+#: gui.cc:42 ../kcollectd/gui.cc:44
 msgid "Sensordata"
 msgstr ""
 
-#: gui.cc:52
+#: gui.cc:52 ../kcollectd/gui.cc:58
 msgid "last month"
 msgstr ""
 
-#: gui.cc:54
+#: gui.cc:54 ../kcollectd/gui.cc:60
 msgid "last week"
 msgstr ""
 
-#: gui.cc:56
+#: gui.cc:56 ../kcollectd/gui.cc:62
 msgid "last day"
 msgstr ""
 
-#: gui.cc:58
+#: gui.cc:58 ../kcollectd/gui.cc:64
 msgid "last hour"
 msgstr ""
 
@@ -67,7 +68,7 @@ msgstr ""
 msgid "Viewer for Collectd-databases"
 msgstr ""
 
-#: kcollectd.cc:104
+#: kcollectd.cc:104 ../kcollectd/kcollectd.cc:126
 msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
@@ -75,4 +76,25 @@ msgstr ""
 
 #: rrd_interface.h:40
 msgid "calling rrdinfo failed."
+msgstr ""
+
+#: ../kcollectd/gui.cc:67
+msgid "increases magnification"
+msgstr ""
+
+#: ../kcollectd/gui.cc:71
+msgid "reduces magnification"
+msgstr ""
+
+#: ../kcollectd/gui.cc:75
+msgid "toggle automatic update-and-follow mode."
+msgstr ""
+
+#: ../kcollectd/gui.cc:76
+msgid ""
+"<p>This button toggles the automatic update-and-follow mode</p><p>The "
+"automatic update-and-follow mode updates the graph every ten seconds. In "
+"this mode the graph still can be zoomed, but always displays <i>now</i> near "
+"the right edge and can not be scrolled any more.<br />This makes kcollectd "
+"some kind of status monitor.</p>"
 msgstr ""
