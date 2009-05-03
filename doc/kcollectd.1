@@ -27,17 +27,25 @@ is a small applications that allows to view
 datacollections that have been created by 
 \fBcollectd\fR(1). 
 .PP
-It is quite limited as it only displays one datasource at a time, but
-allows to zoom and scroll around.
+It is quite limited, but allows to zoom and scroll around and has an
+automatic update and follow mode, which makes it some kind of
+status-monitor.
 .PP
-At the left side of the window there is a tree, that lists all
+At the left side of the window is a tree, that lists all
 \fBcollectd\fR(1) datasources that
 .B kcollectd
-has found. You can select them with the mouse.
+has found. You can select one or more of them with the mouse.
 .PP
 At the right the selected datasources are shown as graph. You can move
 the graph to the left or right with the mouse und zoom in or out with
 the mousewheel or the zoombuttons.
+.PP
+At the lower left there is a auto-update-button that allows to switch
+.B kcollectd 
+into the update-and-follow-mode. In this mode the graph still can be
+zoomed, but always displays 
+.I now
+near the right edge and can not be scrolled any more.
 .SH AUTHOR
 kcollectd was written by M G Berberich.
 .PP
