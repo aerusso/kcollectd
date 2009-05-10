@@ -128,6 +128,7 @@ time_t time_iterator::interval()
   case years:
     return step * 3600*24*365;
   }
+  return 0;
 }
 
 const struct tm *time_iterator::tm()

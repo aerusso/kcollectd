@@ -7,6 +7,8 @@ set(VERSION 0.6)
 find_package(KDE4 REQUIRED)
 include (KDE4Defaults)
 
+add_definitions(-Wall -g)
+
 # Basedir for collectd
 if(NOT RRD_BASEDIR)
   set(RRD_BASEDIR "/var/lib/collectd/rrd")

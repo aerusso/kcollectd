@@ -98,17 +98,18 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 
 void KCollectdGui::selectionChanged()
 {
-  std::vector<Graph::datasource> list;
-
   QTreeWidgetItemIterator i(listview, QTreeWidgetItemIterator::Selected);
+  graph->clear();
+#if 1
   for ( ;*i; ++i) {
-    Graph::datasource l;
-    l.rrd = (*i)->text(2);
-    l.ds = (*i)->text(3);
-    l.label = (*i)->text(1);
-    list.push_back(l);
+    graph->add((*i)->text(2), (*i)->text(3), (*i)->text(1));
   }
-
-  graph->setup(list);
+#else
+  GraphInfo &k = graph->add((*i)->text(2), (*i)->text(3), (*i)->text(1));
+  ++i;
+  for ( ;*i; ++i) {
+    k.add((*i)->text(2), (*i)->text(3), (*i)->text(1));
+  }
+#endif
   graph->update();
 }

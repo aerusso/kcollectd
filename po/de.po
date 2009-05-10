@@ -15,10 +15,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: graph.cc:210 ../kcollectd/graph.cc:132
-msgid "%Y-%m"
-msgstr "%B %Y"
-
 #: graph.cc:212 ../kcollectd/graph.cc:134
 msgid "%A %Y-%m-%d"
 msgstr "%A, %d. %B %Y"
@@ -31,41 +27,24 @@ msgstr "%A, %d. %B %Y %H:%M"
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr "%A, %d. %B %Y %H:%M:%S"
 
-#: graph.cc:220 ../kcollectd/graph.cc:142
-msgid "from %1 to %2"
-msgstr "Von %1 bis %2"
+#: graph.cc:210 ../kcollectd/graph.cc:132
+msgid "%Y-%m"
+msgstr "%B %Y"
 
-#: graph.cc:314 ../kcollectd/graph.cc:240
-msgid "week %V"
-msgstr "Woche %V"
-
-#: gui.cc:42 ../kcollectd/gui.cc:44
-msgid "Sensordata"
-msgstr "Sensordaten"
-
-#: gui.cc:52 ../kcollectd/gui.cc:58
-msgid "last month"
-msgstr "Letzter Monat"
-
-#: gui.cc:54 ../kcollectd/gui.cc:60
-msgid "last week"
-msgstr "Letzte Woche"
-
-#: gui.cc:56 ../kcollectd/gui.cc:62
-msgid "last day"
-msgstr "Letzter Tag"
-
-#: gui.cc:58 ../kcollectd/gui.cc:64
-msgid "last hour"
-msgstr "Letzte Stunde"
-
-#: kcollectd.cc:95
-msgid "KCollectd"
-msgstr "KCollectd"
-
-#: kcollectd.cc:96
-msgid "Viewer for Collectd-databases"
-msgstr "Betrachter für Collectd-Datensammlungen"
+#: ../kcollectd/gui.cc:76
+msgid ""
+"<p>This button toggles the automatic update-and-follow mode</p><p>The "
+"automatic update-and-follow mode updates the graph every ten seconds. In "
+"this mode the graph still can be zoomed, but always displays <i>now</i> near "
+"the right edge and can not be scrolled any more.<br />This makes kcollectd "
+"some kind of status monitor.</p>"
+msgstr ""
+"<p>Dieser Knopf schaltet den automatischen aktualisierungs-und-folge Modus "
+"an an und aus</p><p>Der automatische aktualisierungs-und-folge Modus "
+"aktualisiert den Graph alle zehn Sekunden. In diesem Modus kann der Graph "
+"noch gezoomt werden, stellt aber immer <i>Jetzt</i> nahe der rechten Kante "
+"dar und kann nicht mehr verschoben werden.<br />Dadurch wird kcollectd zu "
+"einer Art Statusmonitor.</p>"
 
 #: kcollectd.cc:104 ../kcollectd/kcollectd.cc:126
 msgid ""
@@ -75,13 +54,45 @@ msgstr ""
 "collectd-Struktur unter ‚%1‘ konnte nicht gelesen werden.\n"
 "Breche ab."
 
+#: kcollectd.cc:95
+msgid "KCollectd"
+msgstr "KCollectd"
+
+#: gui.cc:42 ../kcollectd/gui.cc:44
+msgid "Sensordata"
+msgstr "Sensordaten"
+
+#: kcollectd.cc:96
+msgid "Viewer for Collectd-databases"
+msgstr "Betrachter für Collectd-Datensammlungen"
+
 #: rrd_interface.h:40
 msgid "calling rrdinfo failed."
 msgstr "Aufruf von „rrdinfo“ fehlgeschlagen."
 
+#: graph.cc:220 ../kcollectd/graph.cc:142
+msgid "from %1 to %2"
+msgstr "Von %1 bis %2"
+
 #: ../kcollectd/gui.cc:67
 msgid "increases magnification"
 msgstr "erhöht die Vergrößerung"
+
+#: gui.cc:56 ../kcollectd/gui.cc:62
+msgid "last day"
+msgstr "Letzter Tag"
+
+#: gui.cc:58 ../kcollectd/gui.cc:64
+msgid "last hour"
+msgstr "Letzte Stunde"
+
+#: gui.cc:52 ../kcollectd/gui.cc:58
+msgid "last month"
+msgstr "Letzter Monat"
+
+#: gui.cc:54 ../kcollectd/gui.cc:60
+msgid "last week"
+msgstr "Letzte Woche"
 
 #: ../kcollectd/gui.cc:71
 msgid "reduces magnification"
@@ -91,12 +102,6 @@ msgstr "verringert die Vergrößerung"
 msgid "toggle automatic update-and-follow mode."
 msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 
-#: ../kcollectd/gui.cc:76
-msgid ""
-"<p>This button toggles the automatic update-and-follow mode</p><p>The "
-"automatic update-and-follow mode updates the graph every ten seconds. In "
-"this mode the graph still can be zoomed, but always displays <i>now</i> near "
-"the right edge and can not be scrolled any more.<br />This makes kcollectd "
-"some kind of status monitor.</p>"
-msgstr "<p>Dieser Knopf schaltet den automatischen aktualisierungs-und-folge Modus an an und aus</p><p>Der automatische aktualisierungs-und-folge Modus aktualisiert den Graph alle zehn Sekunden. In diesem Modus kann der Graph noch gezoomt werden, stellt aber immer <i>Jetzt</i> nahe der rechten Kante dar und kann nicht mehr verschoben werden.<br />Dadurch wird kcollectd zu einer Art Statusmonitor.</p>"
-
+#: graph.cc:314 ../kcollectd/graph.cc:240
+msgid "week %V"
+msgstr "Woche %V"

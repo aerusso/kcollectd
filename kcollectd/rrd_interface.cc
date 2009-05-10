@@ -67,7 +67,7 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
   while (i) {
     string line(i->key);
     if (line.substr(0,3) == "ds[") {
-      int e =  line.find("].type");
+      size_t e =  line.find("].type");
       if (e != string::npos) {
 	string name = line.substr(3, line.find("].type")-3);
 	list.insert(name);
@@ -92,7 +92,6 @@ void get_rrd_data (const std::string &file, const std::string &ds,
   unsigned long ds_cnt = 0;
   char **ds_name;
   rrd_value_t *data;
-  char buffer[64];
   int status;
 
   result->clear();

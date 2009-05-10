@@ -73,9 +73,8 @@ Range ds_minmax(const std::vector<double> &avg_data,
       const std::vector<double> &min_data,
       const std::vector<double> &max_data);
 
-Range ds_minmax_adj(const std::vector<double> &avg_data, 
-      const std::vector<double> &min_data,
-      const std::vector<double> &max_data, 
-      double *base);
+Range range_adj(const Range &range, double *base);
+
+Range range_max(const Range &a, const Range &b);
 
 #endif

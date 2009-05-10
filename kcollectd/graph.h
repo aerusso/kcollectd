@@ -40,6 +40,38 @@
 
 class time_iterator;
 
+class GraphInfo
+{
+public:
+
+  struct datasource {
+    QString rrd;
+    QString ds;
+    QString label;
+    std::vector<double> avg_data, min_data, max_data;
+  };
+
+  void add(const QString &rrd, const QString &ds, const QString &label);
+  void clear() { dslist.clear(); }
+  size_t size() const { return dslist.size(); }
+  Range minmax();
+  Range minmax_adj(double *base);
+
+  
+
+  // iterators pointing to datasources
+  typedef std::vector<datasource>::iterator iterator;
+  typedef std::vector<datasource>::const_iterator const_iterator;
+
+  iterator begin() { return dslist.begin(); }
+  iterator end()   { return dslist.end(); }
+  const_iterator begin() const { return dslist.begin(); } 
+  const_iterator end() const   { return dslist.end(); }
+
+private:
+  
+  std::vector<datasource> dslist;
+};
 
 /**
  *
@@ -49,18 +81,14 @@ class Graph : public QFrame
   Q_OBJECT;
  public:
 
-  struct datasource {
-    QString rrd;
-    QString ds;
-    QString label;
-    std::vector<double> avg_data, min_data, max_data;
-  };
+  typedef std::vector<GraphInfo> graph_list;
 
   Graph(QWidget *parent=0);
   Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
 	const char *name=0);
 
-  void setup(std::vector<datasource> &list);
+  void clear();
+  GraphInfo &add(const QString &rrd, const QString &ds, const QString &label);
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -86,23 +114,25 @@ public slots:
  private:
   bool fetchAllData();
   void drawAll();
-  void drawHeader(QPainter &paint, int left, int right, int pos, 
-	const QString &test);
+  void drawLabel(QPainter &paint, int left, int right, int pos, 
+	const GraphInfo &ginfo);
   void drawFooter(QPainter &paint, int left, int right);
+  void drawHeader(QPainter &paint);
   void drawYLines(QPainter &paint, const QRect &rect, 
 	const Range &y_range, double base, QColor color);
   void drawYLabel(QPainter &paint, const QRect &rect, 
 	const Range &range, double base);
   void drawXLines(QPainter &paint, const QRect &rect, 
 	time_iterator it, QColor color);
-  void drawXLabel(QPainter &paint, int left, int right, 
+  void drawXLabel(QPainter &paint, int y, int left, int right, 
 	time_iterator it, QString format, bool center);
   void findXGrid(int width, QString &format, bool &center, 
        time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
-  void drawGraph(QPainter &paint, const QRect &rect, const datasource &ds, double min, double max);
+  void drawGraph(QPainter &paint, const QRect &rect, const GraphInfo &gi, 
+	double min, double max);
 
   // rrd-data
-  std::vector<datasource> dslist;
+  graph_list glist;
   bool data_is_valid;
   time_t start;		// user set start of graph
   time_t span;		// user-set span of graph
@@ -116,17 +146,43 @@ public slots:
   time_t origin_start, origin_end;
 
   // widget-data
-  QFont font;
+  QFont font, header_font, small_font;
   QPixmap offscreen;
   QRect graphrect;
   int label_y1, label_y2;
   QColor color_major, color_minor, color_graph_bg;
-  QColor color_minmax, color_line;
+  QColor color_minmax[8], color_line[8];
 
   // Auto-Update
   int autoUpdateTimer;
   time_t timer_diff;
 };
+
+/**
+ * add a datasource to the GraphInfo
+ */
+inline void 
+GraphInfo::add(const QString &rrd, const QString &ds, const QString &label)
+{
+  datasource new_ds;
+  new_ds.rrd = rrd;
+  new_ds.ds = ds;
+  new_ds.label = label;
+  dslist.push_back(new_ds);
+}
+
+/**
+ * 
+ */
+inline GraphInfo &
+Graph::add(const QString &rrd, const QString &ds, const QString &label)
+{
+  GraphInfo gi;
+  gi.add(rrd, ds, label);
+  glist.push_back(gi);
+  data_is_valid = false;
+  return glist.back();
+}
 
 inline void Graph::last_month()
 {

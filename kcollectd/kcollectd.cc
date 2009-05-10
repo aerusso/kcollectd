@@ -44,6 +44,8 @@
 # define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
 
+static const std::string delimiter("•");
+
 void get_datasources(const std::string &rrdfile, const std::string &info,
       QTreeWidgetItem *item)
 {
@@ -52,17 +54,17 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
  
   if (datasources.size() == 1) {
     item->setFlags(item->flags() | Qt::ItemIsSelectable); 
-    item->setText(1, (info + *datasources.begin()).c_str());
-    item->setText(2, rrdfile.c_str());
-    item->setText(3, (*datasources.begin()).c_str());
+    item->setText(1, QString::fromUtf8(info.c_str()));
+    item->setText(2, QString::fromUtf8(rrdfile.c_str()));
+    item->setText(3, QString::fromUtf8((*datasources.begin()).c_str()));
   } else { 
     for(std::set<std::string>::iterator i=datasources.begin();
 	i != datasources.end(); ++i){
       QStringList SL(i->c_str());
-      SL.append((info + *i).c_str());
-      SL.append(rrdfile.c_str());
-      SL.append(i->c_str());
-      QTreeWidgetItem *dsitem = new QTreeWidgetItem(item, SL);
+      SL.append(QString::fromUtf8((info + delimiter + *i).c_str()));
+      SL.append(QString::fromUtf8(rrdfile.c_str()));
+      SL.append(QString::fromUtf8(i->c_str()));
+      new QTreeWidgetItem(item, SL);
    }
   }
 }
@@ -95,9 +97,9 @@ void get_rrds(const boost::filesystem::path rrdpath, QTreeWidget *listview)
 	      QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
 	      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
 	      std::ostringstream info;
-	      info << host->leaf() << " . "
-		   << sensor->leaf() << " . "
-		   << basename(*rrd) << " . ";
+	      info << host->leaf() << delimiter
+		//		   << sensor->leaf() << delimiter
+		   << basename(*rrd);
 	      get_datasources(rrd->string(), info.str(), rrditem);
 	    }
 	  }

@@ -29,21 +29,42 @@
 #include <QRect>
 
 #include <KLocale>
+#include <KGlobalSettings>
 
 #include "rrd_interface.h"
 #include "misc.h"
 #include "timeaxis.h"
 #include "graph.moc"
 
+// some magic numbers
+
+// colors
+static const double colortable[][3] = {
+  { 0, 255, 0},
+  { 255, 0, 255 }, 
+  { 0, 128, 255 },
+  { 255, 128, 0 },
+  { 0, 255, 191}, 
+  { 64, 0, 255 }, 
+  { 255, 0, 64 },
+  { 191,255,0 } };
+
+// magnification for the header-font
+static const double header_font_mag = 1.2;
+
+// distance between elements
+const int marg = 2; 
+
 /**
  *
  */
 Graph::Graph(QWidget *parent) :
   QFrame(parent), data_is_valid(false), 
-  start(time(0)-3600*24), span(3600*24), step(1), font(QFont()),
+  start(time(0)-3600*24), span(3600*24), step(1), 
+  font(KGlobalSettings::generalFont()), 
+  small_font(KGlobalSettings::smallestReadableFont()),
   color_major(140, 115, 60), color_minor(80, 65, 34), 
   color_graph_bg(0, 0, 0),
-  color_minmax(0, 120, 0, 200), color_line(0, 255, 0),
   //color_major(255, 180, 180), color_minor(220, 220, 220), 
   //color_graph_bg(255, 255, 255),
   //color_minmax(180, 255, 180, 200), color_line(0, 170, 0),
@@ -54,6 +75,20 @@ Graph::Graph(QWidget *parent) :
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+  // setup color-tables
+  for (int i=0; i<8; ++i) {
+    color_line[i].setRgb(colortable[i][0], colortable[i][1], colortable[i][2]);
+    color_minmax[i].setRgb(0.5*colortable[i][0], 0.5*colortable[i][1], 
+	  0.5*colortable[i][2], 160);
+  }
+
+  // idiotic case-differentiation on point or pixelsize necessary :(
+  if (header_font.pixelSize() == -1) {
+    header_font.setPointSizeF(header_font_mag * header_font.pointSizeF());
+  } else {
+    header_font.setPixelSize(header_font_mag * header_font.pixelSize());
+  }
+ 
   struct timezone tz;
   struct timeval tv;
   gettimeofday(&tv, &tz);
@@ -71,60 +106,107 @@ bool Graph::fetchAllData ()
   if (data_is_valid)
     return (true);
   
-  if (dslist.empty())
+  if (glist.empty())
     return (false);
 
-  std::vector<datasource>::iterator i;
-
-  for(i = dslist.begin(); i != dslist.end(); ++i) {
-    const std::string file(i->rrd.toUtf8().data());
-    const std::string ds(i->ds.toUtf8().data());    
-
-    data_start = start;
-    data_end = start + span;
-    step = 1;
-    get_rrd_data (file, ds, &data_start, &data_end, &step, 
-	  "MIN", &i->min_data);
-    
-    data_start = start;
-    data_end = start + span;
-    step = 1;
-    get_rrd_data (file, ds, &data_start, &data_end, &step, 
-	  "MAX", &i->max_data);
-    
-    data_start = start;
-    data_end = start + span;
-    step = 1;
-    get_rrd_data (file, ds, &data_start, &data_end, &step,
-	  "AVERAGE", &i->avg_data);
-  }    
+  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+    for(GraphInfo::iterator j = i->begin(); j != i->end(); ++j) {
+      const std::string file(j->rrd.toUtf8().data());
+      const std::string ds(j->ds.toUtf8().data());    
+      
+      data_start = start;
+      data_end = start + span;
+      step = 1;
+      get_rrd_data (file, ds, &data_start, &data_end, &step, 
+	    "MIN", &j->min_data);
+      
+      data_start = start;
+      data_end = start + span;
+      step = 1;
+      get_rrd_data (file, ds, &data_start, &data_end, &step, 
+	    "MAX", &j->max_data);
+      
+      data_start = start;
+      data_end = start + span;
+      step = 1;
+      get_rrd_data (file, ds, &data_start, &data_end, &step,
+	    "AVERAGE", &j->avg_data);
+    }    
+  }
   data_is_valid = true;
 
   return (true);
 }
 
 /**
- * set up graph-widget with a rrd-file and a datasource.
- *
- * optionally a label/name for the Graph can be given.
+ * 
  */
-void Graph::setup(std::vector<datasource> &list)
+void Graph::clear()
 {
+  glist.clear();
   data_is_valid = false;
-
-  dslist = list;
 }
 
-void Graph::drawHeader(QPainter &paint, int left, int right, int pos, 
-	    const QString &text)
+void Graph::drawLabel(QPainter &paint, int left, int right, int y, 
+      const GraphInfo &ginfo)
 {
-  const QFontMetrics fontmetric(font);
-  paint.drawText((left+right)/2-fontmetric.width(text)/2, pos, text);
+  const int num = ginfo.size();
+  const QFontMetrics &fontmetric = fontMetrics();
+  const int box_size = fontmetric.ascent()-2;
+
+  int textlen = 0;
+  for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
+    textlen += fontmetric.width(i->label);
+  }
+  textlen += (4*num - 3) * marg + num * box_size;
+  int x = left;
+  int n = 0;
+  for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
+    paint.drawRect(x, y-box_size, box_size-1, box_size-1);
+    paint.fillRect(x+1, y-box_size+1, box_size-2, box_size-2, 
+	  color_line[n++ % 8]);
+    x += box_size + marg;
+    paint.drawText(x, y, i->label);
+    x += fontmetric.width(i->label) + 4*marg;
+  }
+}
+
+void Graph::drawHeader(QPainter &paint)
+{
+  paint.save();
+  paint.setFont(header_font);
+
+  const QFontMetrics &fontmetric = paint.fontMetrics();
+
+  QString format;
+  time_t time_span = data_end - data_start;
+  if (time_span > 3600*24*356)
+    format = i18n("%Y-%m");
+  else if (time_span > 3600*24*31)
+    format = i18n("%A %Y-%m-%d");
+  else if (time_span > 3600*24)
+    format = i18n("%A %Y-%m-%d %H:%M");
+  else
+    format = i18n("%A %Y-%m-%d %H:%M:%S");
+
+  QString buffer_from = Qstrftime(format.toAscii(), localtime(&data_start));
+  QString buffer_to = Qstrftime(format.toAscii(), localtime(&data_end));
+  QString label = QString(i18n("from %1 to %2"))
+    .arg(buffer_from) .arg(buffer_to);
+  int x = (contentsRect().left()+contentsRect().right())/2
+    - fontmetric.width(label)/2;
+  int y = fontmetric.ascent() + marg;
+  paint.drawText(x, y, label);
+
+  paint.restore();
 }
 
 void Graph::drawFooter(QPainter &paint, int left, int right)
 {
-  const QFontMetrics fontmetric(font);
+  paint.save();
+  paint.setFont(header_font);
+
+  const QFontMetrics &fontmetric = paint.fontMetrics();
 
   QString format;
   time_t time_span = data_end - data_start;
@@ -146,6 +228,8 @@ void Graph::drawFooter(QPainter &paint, int left, int right)
   fontmetric.width(label);
   paint.drawText((left+right)/2-fontmetric.width(label)/2, 
 	label_y2, label);
+
+  paint.restore();
 }
 
 void Graph::drawXLines(QPainter &paint, const QRect &rect, 
@@ -170,14 +254,13 @@ void Graph::drawXLines(QPainter &paint, const QRect &rect,
   paint.restore();
 }
 
-void Graph::drawXLabel(QPainter &paint, int left, int right, 
+void Graph::drawXLabel(QPainter &paint, int y, int left, int right, 
       time_iterator i, QString format, bool center)
 {
   if (!i.valid()) return;
   paint.save();
+  paint.setFont(small_font);
 
-  const QFontMetrics fontmetric(font);
-  
   // setting up linear mappings
   const linMap xmap(data_start, left, data_end, right);
 
@@ -191,13 +274,13 @@ void Graph::drawXLabel(QPainter &paint, int left, int right,
     localtime_r(&t, &tm);
     QString label = Qstrftime(i18n(format.toAscii()).toAscii(), &tm);
     if(! label.isNull()) {
-      const int width = fontmetric.width(label);
+      const int width = paint.fontMetrics().width(label);
       int x = center 
 	? xmap(*i + i.interval() / 2) - width / 2
 	: xmap(*i) - width / 2;
 	  
       if (x > left && x + width < right)
-	paint.drawText(x, label_y1, label);
+	paint.drawText(x, y, label);
     }
   }
   paint.restore();
@@ -368,62 +451,76 @@ void Graph::drawYLines(QPainter &paint, const QRect &rect,
 /**
  * draw the graph itself
  */
-void Graph::drawGraph(QPainter &paint, const QRect &rect, const datasource &ds, 
-      double min, double max)
+void Graph::drawGraph(QPainter &paint, const QRect &rect, 
+      const GraphInfo &ginfo, double min, double max)
 {
-  const std::vector<double> &avg_data = ds.avg_data;
-  const std::vector<double> &min_data = ds.min_data;
-  const std::vector<double> &max_data = ds.max_data;
-
-  if (avg_data.empty())
-    return;
-
-  const int size = avg_data.size();
-
-  // setting up linear mappings
-  const linMap xmap(0, rect.left(), size-1, rect.right());
   const linMap ymap(min, rect.bottom(), max, rect.top());
-
   // define once use many
   QPolygon points;
-
-  // draw min/max backshadow
+  
   paint.save();
-  // paint.setRenderHint(QPainter::Antialiasing);
-  if (!min_data.empty() && !max_data.empty()) {  
-    paint.setPen(Qt::NoPen);
-    paint.setBrush(QBrush(color_minmax));
-    for(int i=0; i<size; ++i) {
-      while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
-      int l = i;
-      while (i<size && !isnan(min_data[i]) && !isnan(max_data[i])) ++i;
-      const int asize = i-l;
-      points.resize(asize*2);
-      int k;
-      for(k=0; k<asize; ++k, ++l) {
-	points.setPoint(k, xmap(l), ymap(min_data[l]));
+  //paint.setRenderHint(QPainter::Antialiasing);
+
+  // draw all min/max backshadows
+  int color_nr = 0;
+  for(GraphInfo::const_iterator gi = ginfo.begin(); gi != ginfo.end(); ++gi) {
+    const std::vector<double> &min_data = gi->min_data;
+    const std::vector<double> &max_data = gi->max_data;
+
+    if (min_data.empty() || max_data.empty())
+      continue;
+    const int size = gi->min_data.size();
+
+    // setting up linear mappings
+    const linMap xmap(0, rect.left(), size-1, rect.right());
+   
+    if (!min_data.empty() && !max_data.empty()) {  
+      paint.setPen(Qt::NoPen);
+      paint.setBrush(QBrush(color_minmax[color_nr++ % 8]));
+      for(int i=0; i<size; ++i) {
+	while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
+	int l = i;
+	while (i<size && !isnan(min_data[i]) && !isnan(max_data[i])) ++i;
+	const int asize = i-l;
+	points.resize(asize*2);
+	int k;
+	for(k=0; k<asize; ++k, ++l) {
+	  points.setPoint(k, xmap(l), ymap(min_data[l]));
+	}
+	--l;
+	for(; k<2*asize; ++k, --l) {
+	  points.setPoint(k, xmap(l), ymap(max_data[l]));
+	}
+	paint.drawPolygon(points);
       }
-      --l;
-      for(; k<2*asize; ++k, --l) {
-	points.setPoint(k, xmap(l), ymap(max_data[l]));
-      }
-      paint.drawPolygon(points);
     }
   }
 
-  // draw average
-  if (!avg_data.empty()) {
-    paint.setPen(color_line);
-    for(int i=0; i<size; ++i) {
-      while (i<size && isnan(avg_data[i])) ++i;
-      int l = i;
-      while (i<size && !isnan(avg_data[i])) ++i;
-      const int asize = i-l;
-      points.resize(asize);
-      for(int k=0; k<asize; ++k, ++l) {
-	points.setPoint(k, xmap(l), ymap(avg_data[l]));
+  // draw all averages
+  color_nr = 0;
+  for(GraphInfo::const_iterator gi = ginfo.begin(); gi != ginfo.end(); ++gi) {
+    const std::vector<double> &avg_data = gi->avg_data;
+
+    if (avg_data.empty()) continue;
+    const int size = avg_data.size();
+    
+    // setting up linear mappings
+    const linMap xmap(0, rect.left(), size-1, rect.right());
+   
+    // draw ing
+    if (!avg_data.empty()) {
+      paint.setPen(color_line[color_nr++ % 8]);
+      for(int i=0; i<size; ++i) {
+	while (i<size && isnan(avg_data[i])) ++i;
+	int l = i;
+	while (i<size && !isnan(avg_data[i])) ++i;
+	const int asize = i-l;
+	points.resize(asize);
+	for(int k=0; k<asize; ++k, ++l) {
+	  points.setPoint(k, xmap(l), ymap(avg_data[l]));
+	}
+	paint.drawPolyline(points);
       }
-      paint.drawPolyline(points);
     }
   }
   paint.restore();
@@ -436,7 +533,7 @@ void Graph::drawGraph(QPainter &paint, const QRect &rect, const datasource &ds,
  */
 void Graph::drawAll()
 {
-  const int numgraphs =  dslist.size();
+  const int numgraphs =  glist.size();
   if (!numgraphs) return;
 
   if (!data_is_valid)
@@ -447,57 +544,57 @@ void Graph::drawAll()
 
   // clear
   QPainter paint(&offscreen);
-  paint.eraseRect(0, 0, width(), height());
-  //paint.fillRect(0, 0, width(), height(), QColor(245, 245, 245));
+  paint.setFont(font);
+  paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
+  //paint.fillRect(0, 0, contentsRect().width(), contentsRect().height(), QColor(245, 245, 245));
   
 
   // margin calculations
   // place for labels at the left and two line labels below
-  const QFontMetrics fontmetric(font);
-  const int labelheight = fontmetric.lineSpacing();
+  const QFontMetrics &fontmetric = paint.fontMetrics();
+  const QFontMetrics smallmetric = QFontMetrics(small_font);
+  const QFontMetrics headermetric = QFontMetrics(header_font);
   const int labelwidth = fontmetric.boundingRect("888.888 M").width();
-  const int marg = 4; // distance between labels and graph
 
-  graphrect.setRect(contentsRect().left() + labelwidth + marg,
-	contentsRect().top(),
-	contentsRect().width() - labelwidth - 2 * marg,
-	contentsRect().height() - 2 * labelheight - marg);
-
-  // positions of labels and headers
-  label_y1 = graphrect.bottom() + 2 + fontmetric.ascent();
-  label_y2 = label_y1 + labelheight;
+  // area for graphs (including legends)
+  graphrect.setRect(labelwidth + marg,
+	headermetric.height() + 2*marg,
+	contentsRect().width() - labelwidth - marg,
+	contentsRect().height() - headermetric.height() - 2*marg);
 
   time_iterator minor_x, major_x, label_x;
   QString format_x;
   bool center_x;
   findXGrid(graphrect.width(), format_x, center_x, minor_x, major_x, label_x);
-  drawFooter(paint, graphrect.left(), graphrect.right());
-  drawXLabel(paint, graphrect.left(), graphrect.right(), label_x, format_x, center_x);
+  drawHeader(paint);
  
   const int graphheight = graphrect.height() / numgraphs;
-  const int panelheight = graphheight - 2 - marg - labelheight;
   int n = 0;
-  for(std::vector<datasource>::iterator i = dslist.begin();
-      i != dslist.end(); ++n, ++i) {
-    
+  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++n, ++i) {
     // y-scaling
     double base;
-    Range y_range = ds_minmax_adj(i->avg_data, i->min_data, i->max_data, &base);
+    Range y_range = i->minmax_adj(&base);
     if (!y_range.isValid())
       continue;
+    
+    //
+    int top = graphrect.top() + n * graphheight;
+    int bottom = top + graphheight - 2*marg - smallmetric.lineSpacing()
+      - fontmetric.height();
+    int xlabel_base = bottom + marg + smallmetric.ascent();
+    int label_base = bottom + marg + smallmetric.lineSpacing() 
+      + fontmetric.ascent();
 
-    // 
-    QRect panelrect(graphrect.left(), 
-	  graphrect.top() + n * graphheight + 2 + labelheight, 
-	  graphrect.width(),
-	  panelheight);
+    // panel area
+    QRect panelrect(graphrect.left(), top, graphrect.width(), bottom-top);
 
     // graph-background
     paint.fillRect(panelrect, color_graph_bg);
 
     // draw minor, major, graph
-    drawHeader(paint, panelrect.left(), panelrect.right(), 
-	  panelrect.top() - fontmetric.descent() - marg/2, i->label);
+    drawXLabel(paint, xlabel_base, graphrect.left(), graphrect.right(), 
+	  label_x, format_x, center_x);
+    drawLabel(paint, panelrect.left(), panelrect.right(), label_base, *i);
     drawXLines(paint, panelrect, minor_x, color_minor);
     drawYLines(paint, panelrect, y_range, base/10, color_minor);
     drawXLines(paint, panelrect, major_x, color_major);
@@ -652,4 +749,31 @@ void Graph::zoom(double factor)
   
   data_is_valid = false;
   update();
+}
+
+/**
+ * returns range for y-values
+ */
+Range GraphInfo::minmax()
+{
+  Range r;
+  for(const_iterator i = begin(); i != end(); ++i) {
+    Range a = ds_minmax(i->avg_data, i->min_data, i->max_data);
+    if (a.isValid()) {
+      if (r.isValid())
+	r = range_max(r, a);
+      else
+	r = a;
+    }
+  }
+  return r;
+}
+
+/**
+ * returns adjusted range for y-values
+ */
+Range GraphInfo::minmax_adj(double *base)
+{
+  Range y = minmax();
+  return range_adj(y, base);
 }

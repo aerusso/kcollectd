@@ -149,13 +149,8 @@ Range ds_minmax(const std::vector<double> &avg_data,
  * and do some adjustment
  */
 
-Range ds_minmax_adj(const std::vector<double> &avg_data, 
-	    const std::vector<double> &min_data,
-	    const std::vector<double> &max_data, 
-	    double *base)
+Range range_adj(const Range &y_range, double *base)
 {
-  Range y_range = ds_minmax(avg_data, min_data, max_data);
-
   if(!y_range.isValid()) 
     return Range();
   
@@ -177,13 +172,24 @@ Range ds_minmax_adj(const std::vector<double> &avg_data,
     min -= margin;
   }
 
-  y_range.set(min, max);
   if (base) *base = tmp_base;
-
-  return y_range;
+  return Range(min, max);
 }
 
+/**
+ * merges two ranges @a a and @a b into a range, so that the new range
+ * encloses @a a and @a b.
+ */
+Range range_max(const Range &a, const Range &b)
+{
+  if (!a.isValid() || !b.isValid())
+    return Range();
 
+  Range r;
+  r.min(fmin(a.min(), b.min()));
+  r.max(fmax(a.max(), b.max()));
+  return r;
+}
 
 // definition of NaN in Range
 const double Range::NaN = std::numeric_limits<double>::quiet_NaN();
