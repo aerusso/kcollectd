@@ -98,7 +98,7 @@ void get_rrds(const boost::filesystem::path rrdpath, QTreeWidget *listview)
 	      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
 	      std::ostringstream info;
 	      info << host->leaf() << delimiter
-		//		   << sensor->leaf() << delimiter
+		   << sensor->leaf() << delimiter
 		   << basename(*rrd);
 	      get_datasources(rrd->string(), info.str(), rrditem);
 	    }

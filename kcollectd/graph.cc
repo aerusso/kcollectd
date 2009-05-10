@@ -55,12 +55,50 @@ static const double header_font_mag = 1.2;
 // distance between elements
 const int marg = 2; 
 
+inline double norm(const QPointF &a)
+{
+  return sqrt(a.x()*a.x() + a.y()*a.y());
+}
+
+/**
+ * draw an arrow
+ * origin: IRC:peppe
+ */
+void drawArrow(QPainter &p, const QPoint &first,  const QPoint &second) 
+{
+  p.save();
+
+  QPen pen = p.pen();
+  const int width = pen.width();
+
+  p.translate(second);
+  QPointF difference = second - first;
+  double angle = atan2(difference.y(), difference.x());
+  angle *= 180.0/M_PI; // to degrees
+  p.rotate(angle);
+  
+  static const QPointF arrow[] = {
+    QPoint(0.0, 0.0),
+    QPoint(-5.0*width, -2.0*width),
+    QPoint(-4.0*width, 0.0),
+    QPoint(-5.0*width, 2.0*width)
+  };
+  
+  p.setBrush(QBrush(pen.color(), Qt::SolidPattern));
+  p.drawLine(-4.0*width, 0.0, -norm(difference), 0.0);
+  pen.setWidth(0);
+  p.setPen(pen);
+  p.drawPolygon(arrow, 4);
+  
+  p.restore();
+}
+ 
 /**
  *
  */
 Graph::Graph(QWidget *parent) :
   QFrame(parent), data_is_valid(false), 
-  start(time(0)-3600*24), span(3600*24), step(1), 
+  start(time(0)-3600*24), span(3600*24), step(1), dragging(false), 
   font(KGlobalSettings::generalFont()), 
   small_font(KGlobalSettings::smallestReadableFont()),
   color_major(140, 115, 60), color_minor(80, 65, 34), 
@@ -74,7 +112,7 @@ Graph::Graph(QWidget *parent) :
   setMinimumWidth(300);
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+  
   // setup color-tables
   for (int i=0; i<8; ++i) {
     color_line[i].setRgb(colortable[i][0], colortable[i][1], colortable[i][2]);
@@ -587,6 +625,8 @@ void Graph::drawAll()
 
     // panel area
     QRect panelrect(graphrect.left(), top, graphrect.width(), bottom-top);
+    i->top(top + contentsRect().top());
+    i->bottom(bottom + contentsRect().top());
 
     // graph-background
     paint.fillRect(panelrect, color_graph_bg);
@@ -594,7 +634,7 @@ void Graph::drawAll()
     // draw minor, major, graph
     drawXLabel(paint, xlabel_base, graphrect.left(), graphrect.right(), 
 	  label_x, format_x, center_x);
-    drawLabel(paint, panelrect.left(), panelrect.right(), label_base, *i);
+    drawLabel(paint, 2*marg, graphrect.right(), label_base, *i);
     drawXLines(paint, panelrect, minor_x, color_minor);
     drawYLines(paint, panelrect, y_range, base/10, color_minor);
     drawXLines(paint, panelrect, major_x, color_major);
@@ -606,6 +646,17 @@ void Graph::drawAll()
 
   // copy to screen
   QPainter(this).drawPixmap(contentsRect(), offscreen);
+
+  if(dragging) {
+    QPainter paint(this);
+    QPen pen(QColor(255, 0, 0));
+    pen.setWidth(5);
+    pen.setCapStyle(Qt::RoundCap);
+    paint.setPen(pen);
+
+    //paint.drawLine(origin_x, origin_y, target_x, target_y);
+    drawArrow(paint, QPoint(origin_x, origin_y), QPoint(target_x, target_y));
+  }
 }
 
 /**
@@ -641,16 +692,6 @@ void Graph::autoUpdate(bool active)
 }
 
 /**
- *
- */
-void Graph::timerEvent(QTimerEvent *event)
-{
-  data_is_valid = false;
-  start = time(0) - timer_diff;
-  update();
-}
-
-/**
  * Qt mouse-press-event
  */
 void Graph::mousePressEvent(QMouseEvent *e)
@@ -664,6 +705,27 @@ void Graph::mousePressEvent(QMouseEvent *e)
 
 void Graph::mouseReleaseEvent(QMouseEvent *)
 {
+  if (dragging) {
+    const int numgraphs =  glist.size();
+    graph_list::iterator source = glist.end(), target = glist.end();
+    if (numgraphs>1) {
+      for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+	if (i->top() < origin_y && i->bottom() > origin_y)
+	  source = i;
+	if (i->top() < target_y && i->bottom() > target_y)
+	  target = i;
+      }
+      if (target != glist.end() 
+	    && source != glist.end() 
+	    && target != source
+	    && source->size() == 1 ) {
+	target->add(*(source->begin()));
+	glist.erase(source);
+      }
+    }
+    dragging = false;
+    update();
+  }
 }
 
 void Graph::mouseDoubleClickEvent(QMouseEvent *)
@@ -677,34 +739,60 @@ void Graph::mouseDoubleClickEvent(QMouseEvent *)
  */
 void Graph::mouseMoveEvent(QMouseEvent *e)
 {
-  if (! (e->buttons() & Qt::LeftButton)) {
+  if (e->buttons() == Qt::LeftButton) {
+    if (autoUpdateTimer != -1) 
+      return;
+    
+    int x = e->x();
+    int y = e->y();
+    
+    if ((x < graphrect.left()) || (x >= graphrect.right()))
+      return;
+    if ((y < 0) || (y >= height()))
+      return;
+    
+    int offset = (x - origin_x) * (origin_end - origin_start) 
+      / graphrect.width();
+    
+    start = origin_start - offset;
+    const time_t now = time(0);
+    if (start + span > now + span * 2 / 3 )
+      start = now - span / 3;
+    
+    if (autoUpdateTimer != -1) 
+      timer_diff = time(0) - start;
+    
+    data_is_valid = false;
+    update();
+  } else  if (e->buttons() == Qt::MidButton){
+    target_x = e->x();
+    target_y = e->y();
+    dragging = true;
+    update();
+  } else {
     e->ignore();
-    return;
   }
+}
 
-  if (autoUpdateTimer != -1) 
-    return;
+/**
+ *
+ */
+void Graph::wheelEvent(QWheelEvent *e)
+{
+  if (e->delta() < 0)
+    zoom(1.259921050);
+  else
+    zoom(1.0/1.259921050);
+}
 
-  int x = e->x();
-  int y = e->y();
 
-  if ((x < graphrect.left()) || (x >= graphrect.right()))
-    return;
-  if ((y < 0) || (y >= height()))
-    return;
-
-  int offset = (x - origin_x) * (origin_end - origin_start) 
-    / graphrect.width();
-
-  start = origin_start - offset;
-  const time_t now = time(0);
-  if (start + span > now + span * 2 / 3 )
-    start = now - span / 3;
-
-  if (autoUpdateTimer != -1) 
-    timer_diff = time(0) - start;
-
+/**
+ *
+ */
+void Graph::timerEvent(QTimerEvent *event)
+{
   data_is_valid = false;
+  start = time(0) - timer_diff;
   update();
 }
 

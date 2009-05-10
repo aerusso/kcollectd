@@ -52,12 +52,16 @@ public:
   };
 
   void add(const QString &rrd, const QString &ds, const QString &label);
+  void add(const datasource &d) { dslist.push_back(d); }
   void clear() { dslist.clear(); }
   size_t size() const { return dslist.size(); }
   Range minmax();
   Range minmax_adj(double *base);
 
-  
+  int top() { return top_; }
+  int bottom() { return bottom_; }
+  void top(int t) { top_ = t; }
+  void bottom(int b) { bottom_ = b; }
 
   // iterators pointing to datasources
   typedef std::vector<datasource>::iterator iterator;
@@ -70,6 +74,7 @@ public:
 
 private:
   
+  int top_, bottom_;
   std::vector<datasource> dslist;
 };
 
@@ -142,8 +147,9 @@ public slots:
   unsigned long step;
 
   // technical helpers
-  int origin_x, origin_y;
+  int origin_x, origin_y, target_x, target_y;
   time_t origin_start, origin_end;
+  bool dragging;
 
   // widget-data
   QFont font, header_font, small_font;
@@ -212,14 +218,6 @@ inline void Graph::zoomIn()
 inline void Graph::zoomOut()
 {
   zoom(1.259921050);
-}
-
-inline void Graph::wheelEvent(QWheelEvent *e)
-{
-  if (e->delta() < 0)
-    zoom(1.259921050);
-  else
-    zoom(1.0/1.259921050);
 }
 
 inline QSize Graph::sizeHint() const
