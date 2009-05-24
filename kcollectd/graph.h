@@ -79,6 +79,22 @@ private:
 };
 
 /**
+ * subclassed MimeData for interal drag'n drop
+ */
+class GraphMimeData : public QMimeData {
+  Q_OBJECT
+ public:
+  void setGraph(const QString &rrd, const QString &ds, const QString &label);
+  const QString &rrd() const { return rrd_; }
+  const QString &ds() const { return ds_; }
+  const QString &label() const { return label_; }
+ private:
+  QString rrd_;
+  QString ds_;
+  QString label_;
+};
+
+/**
  *
  */
 class Graph : public QFrame
@@ -94,6 +110,7 @@ class Graph : public QFrame
 
   void clear();
   GraphInfo &add(const QString &rrd, const QString &ds, const QString &label);
+  GraphInfo &add();
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -101,11 +118,13 @@ class Graph : public QFrame
   virtual void last(time_t span);
   virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
-  virtual void mouseReleaseEvent(QMouseEvent *e);
   virtual void mouseDoubleClickEvent(QMouseEvent *e);
   virtual void mouseMoveEvent(QMouseEvent *e);
   virtual void wheelEvent(QWheelEvent *e);
   virtual void timerEvent(QTimerEvent *event);
+  // drag-and-drop
+  virtual void dragEnterEvent(QDragEnterEvent *event);
+  virtual void dropEvent(QDropEvent *event);
 				    
 public slots:
   virtual void last_month();
@@ -115,6 +134,8 @@ public slots:
   virtual void zoomIn();
   virtual void zoomOut();
   virtual void autoUpdate(bool active);
+  virtual void removeGraph();
+  virtual void splitGraph();
 
  private:
   bool fetchAllData();
@@ -147,7 +168,7 @@ public slots:
   unsigned long step;
 
   // technical helpers
-  int origin_x, origin_y, target_x, target_y;
+  int origin_x, origin_y;
   time_t origin_start, origin_end;
   bool dragging;
 
@@ -162,6 +183,7 @@ public slots:
   // Auto-Update
   int autoUpdateTimer;
   time_t timer_diff;
+
 };
 
 /**
@@ -187,6 +209,24 @@ Graph::add(const QString &rrd, const QString &ds, const QString &label)
   gi.add(rrd, ds, label);
   glist.push_back(gi);
   data_is_valid = false;
+  return glist.back();
+}
+
+/**
+ * set graph-infos.
+ */
+inline void 
+GraphMimeData::setGraph(const QString &r, const QString &d, const QString &l)
+{
+  rrd_ = r;
+  ds_ = d;
+  label_ = l;
+}
+
+inline GraphInfo &Graph::add() 
+{ 
+  GraphInfo gi; 
+  glist.push_back(gi); 
   return glist.back();
 }
 

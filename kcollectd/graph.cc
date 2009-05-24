@@ -27,6 +27,7 @@
 #include <QPainter>
 #include <QPolygon>
 #include <QRect>
+#include <QMenu>
 
 #include <KLocale>
 #include <KGlobalSettings>
@@ -112,6 +113,7 @@ Graph::Graph(QWidget *parent) :
   setMinimumWidth(300);
   setMinimumHeight(150);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  setAcceptDrops(true);
   
   // setup color-tables
   for (int i=0; i<8; ++i) {
@@ -572,90 +574,87 @@ void Graph::drawGraph(QPainter &paint, const QRect &rect,
 void Graph::drawAll()
 {
   const int numgraphs =  glist.size();
-  if (!numgraphs) return;
 
-  if (!data_is_valid)
-    fetchAllData ();  
+  if (numgraphs) {
+    if (!data_is_valid)
+      fetchAllData ();
 
-  // resize offscreen-map to widget-size
-  offscreen = QPixmap(contentsRect().width(), contentsRect().height());
-
-  // clear
-  QPainter paint(&offscreen);
-  paint.setFont(font);
-  paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
-  //paint.fillRect(0, 0, contentsRect().width(), contentsRect().height(), QColor(245, 245, 245));
-  
-
-  // margin calculations
-  // place for labels at the left and two line labels below
-  const QFontMetrics &fontmetric = paint.fontMetrics();
-  const QFontMetrics smallmetric = QFontMetrics(small_font);
-  const QFontMetrics headermetric = QFontMetrics(header_font);
-  const int labelwidth = fontmetric.boundingRect("888.888 M").width();
-
-  // area for graphs (including legends)
-  graphrect.setRect(labelwidth + marg,
-	headermetric.height() + 2*marg,
-	contentsRect().width() - labelwidth - marg,
-	contentsRect().height() - headermetric.height() - 2*marg);
-
-  time_iterator minor_x, major_x, label_x;
-  QString format_x;
-  bool center_x;
-  findXGrid(graphrect.width(), format_x, center_x, minor_x, major_x, label_x);
-  drawHeader(paint);
- 
-  const int graphheight = graphrect.height() / numgraphs;
-  int n = 0;
-  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++n, ++i) {
-    // y-scaling
-    double base;
-    Range y_range = i->minmax_adj(&base);
-    if (!y_range.isValid())
-      continue;
+    // resize offscreen-map to widget-size
+    offscreen = QPixmap(contentsRect().width(), contentsRect().height());
     
-    //
-    int top = graphrect.top() + n * graphheight;
-    int bottom = top + graphheight - 2*marg - smallmetric.lineSpacing()
-      - fontmetric.height();
-    int xlabel_base = bottom + marg + smallmetric.ascent();
-    int label_base = bottom + marg + smallmetric.lineSpacing() 
-      + fontmetric.ascent();
-
-    // panel area
-    QRect panelrect(graphrect.left(), top, graphrect.width(), bottom-top);
-    i->top(top + contentsRect().top());
-    i->bottom(bottom + contentsRect().top());
-
-    // graph-background
-    paint.fillRect(panelrect, color_graph_bg);
-
-    // draw minor, major, graph
-    drawXLabel(paint, xlabel_base, graphrect.left(), graphrect.right(), 
-	  label_x, format_x, center_x);
-    drawLabel(paint, 2*marg, graphrect.right(), label_base, *i);
-    drawXLines(paint, panelrect, minor_x, color_minor);
-    drawYLines(paint, panelrect, y_range, base/10, color_minor);
-    drawXLines(paint, panelrect, major_x, color_major);
-    drawYLines(paint, panelrect, y_range, base, color_major);
-    drawYLabel(paint, panelrect, y_range, base);
-    drawGraph(paint, panelrect, *i, y_range.min(), y_range.max());
-  }
-  paint.end();
-
-  // copy to screen
-  QPainter(this).drawPixmap(contentsRect(), offscreen);
-
-  if(dragging) {
+    // clear
+    QPainter paint(&offscreen);
+    paint.setFont(font);
+    paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
+    //paint.fillRect(0, 0, contentsRect().width(), contentsRect().height(), QColor(245, 245, 245));
+    
+    
+    // margin calculations
+    // place for labels at the left and two line labels below
+    const QFontMetrics &fontmetric = paint.fontMetrics();
+    const QFontMetrics smallmetric = QFontMetrics(small_font);
+    const QFontMetrics headermetric = QFontMetrics(header_font);
+    const int labelwidth = fontmetric.boundingRect("888.888 M").width();
+    
+    // area for graphs (including legends)
+    graphrect.setRect(labelwidth + marg,
+	  headermetric.height() + 2*marg,
+	  contentsRect().width() - labelwidth - marg,
+	  contentsRect().height() - headermetric.height() - 2*marg);
+    
+    time_iterator minor_x, major_x, label_x;
+    QString format_x;
+    bool center_x;
+    findXGrid(graphrect.width(), format_x, center_x, minor_x, major_x, label_x);
+    drawHeader(paint);
+    
+    
+    const int graphheight = graphrect.height() / numgraphs;
+    int n = 0;
+    for(graph_list::iterator i = glist.begin(); i != glist.end(); ++n, ++i) {
+      // y-scaling
+      double base;
+      Range y_range = i->minmax_adj(&base);
+      if (!y_range.isValid())
+	continue;
+      
+      //
+      int top = graphrect.top() + n * graphheight;
+      int bottom = top + graphheight - 2*marg - smallmetric.lineSpacing()
+	- fontmetric.height();
+      int xlabel_base = bottom + marg + smallmetric.ascent();
+      int label_base = bottom + marg + smallmetric.lineSpacing() 
+	+ fontmetric.ascent();
+      
+      // panel area
+      QRect panelrect(graphrect.left(), top, graphrect.width(), bottom-top);
+      i->top(top + contentsRect().top());
+      i->bottom(bottom + contentsRect().top());
+      
+      // graph-background
+      paint.fillRect(panelrect, color_graph_bg);
+      
+      // draw minor, major, graph
+      drawXLabel(paint, xlabel_base, graphrect.left(), graphrect.right(), 
+	    label_x, format_x, center_x);
+      drawLabel(paint, 2*marg, graphrect.right(), label_base, *i);
+      drawXLines(paint, panelrect, minor_x, color_minor);
+      drawYLines(paint, panelrect, y_range, base/10, color_minor);
+      drawXLines(paint, panelrect, major_x, color_major);
+      drawYLines(paint, panelrect, y_range, base, color_major);
+      drawYLabel(paint, panelrect, y_range, base);
+      drawGraph(paint, panelrect, *i, y_range.min(), y_range.max());
+    }
+    paint.end();
+    // copy to screen
+    QPainter(this).drawPixmap(contentsRect(), offscreen);
+  } else {
     QPainter paint(this);
-    QPen pen(QColor(255, 0, 0));
-    pen.setWidth(5);
-    pen.setCapStyle(Qt::RoundCap);
-    paint.setPen(pen);
-
-    //paint.drawLine(origin_x, origin_y, target_x, target_y);
-    drawArrow(paint, QPoint(origin_x, origin_y), QPoint(target_x, target_y));
+    paint.eraseRect(contentsRect());
+    const QString label(i18n("Drop sensors from list here"));
+    const int labelwidth = paint.fontMetrics().width(label);
+    paint.drawText((width()-labelwidth)/2, height()/2, label);
+    paint.end();
   }
 }
 
@@ -692,6 +691,35 @@ void Graph::autoUpdate(bool active)
 }
 
 /**
+ *
+ */
+void Graph::removeGraph()
+{
+  const int numgraphs =  glist.size();
+  if (!numgraphs) return;
+
+  graph_list::iterator target = glist.end();
+  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+    if (i->top() < origin_y && i->bottom() > origin_y)
+      target = i;
+  }
+  if (target != glist.end()) {
+    glist.erase(target);
+  } 
+  update();
+}
+
+/**
+ *
+ */
+void Graph::splitGraph()
+{
+  add();
+  update();
+}
+
+
+/**
  * Qt mouse-press-event
  */
 void Graph::mousePressEvent(QMouseEvent *e)
@@ -701,30 +729,16 @@ void Graph::mousePressEvent(QMouseEvent *e)
 
   origin_start = data_start;
   origin_end = data_end;
-}
 
-void Graph::mouseReleaseEvent(QMouseEvent *)
-{
-  if (dragging) {
-    const int numgraphs =  glist.size();
-    graph_list::iterator source = glist.end(), target = glist.end();
-    if (numgraphs>1) {
-      for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
-	if (i->top() < origin_y && i->bottom() > origin_y)
-	  source = i;
-	if (i->top() < target_y && i->bottom() > target_y)
-	  target = i;
-      }
-      if (target != glist.end() 
-	    && source != glist.end() 
-	    && target != source
-	    && source->size() == 1 ) {
-	target->add(*(source->begin()));
-	glist.erase(source);
-      }
+  if (e->button() == Qt::RightButton) {
+    QMenu menu(this);
+    menu.addAction(i18n("delete this subgraph"), this, SLOT(removeGraph()));
+    menu.addAction(i18n("create new subgraph"), this, SLOT(splitGraph()));
+    QAction *action = menu.exec(e->globalPos());
+    if (action) {
+      
     }
-    dragging = false;
-    update();
+    
   }
 }
 
@@ -765,8 +779,6 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
     data_is_valid = false;
     update();
   } else  if (e->buttons() == Qt::MidButton){
-    target_x = e->x();
-    target_y = e->y();
     dragging = true;
     update();
   } else {
@@ -793,6 +805,44 @@ void Graph::timerEvent(QTimerEvent *event)
 {
   data_is_valid = false;
   start = time(0) - timer_diff;
+  update();
+}
+
+/**
+ *
+ */
+void Graph::dragEnterEvent(QDragEnterEvent *event)
+{
+  if (event->mimeData()->hasFormat("text/plain"))
+    event->acceptProposedAction();
+}
+
+/**
+ *
+ */
+void Graph::dropEvent(QDropEvent *event)
+{
+  const GraphMimeData *mimeData = 
+    qobject_cast<const GraphMimeData *>(event->mimeData());
+  if (!mimeData) return;
+
+  event->acceptProposedAction();
+  const int numgraphs =  glist.size();
+  graph_list::iterator target = glist.end();
+  if (numgraphs) {
+    for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+      if (i->top() < event->pos().y() && i->bottom() > event->pos().y())
+	target = i;
+    }
+    if (target != glist.end()) {
+      target->add(mimeData->rrd(), mimeData->ds(), mimeData->label());
+    } else {
+      add(mimeData->rrd(), mimeData->ds(), mimeData->label());
+    }
+  } else {
+    add(mimeData->rrd(), mimeData->ds(), mimeData->label());
+  }
+  data_is_valid = false;
   update();
 }
 

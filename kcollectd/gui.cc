@@ -43,8 +43,6 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   listview->setColumnCount(1);
   listview->setHeaderLabels(QStringList(i18n("Sensordata")));
   listview->setRootIsDecorated(true);
-  //QT4 listview->setShowSortIndicator(true);
-  listview->setSelectionMode(QAbstractItemView::MultiSelection);
   listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   hbox->addWidget(listview);
 
@@ -85,7 +83,8 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   auto_update->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(auto_update);
 
-  connect(listview, SIGNAL(itemSelectionChanged()), SLOT(selectionChanged()));
+  connect(listview, SIGNAL(itemPressed(QTreeWidgetItem *, int)), 
+	SLOT(startDrag(QTreeWidgetItem *, int)));
   connect(last_month, SIGNAL(clicked()), graph, SLOT(last_month()));
   connect(last_week, SIGNAL(clicked()), graph, SLOT(last_week()));
   connect(last_day, SIGNAL(clicked()), graph, SLOT(last_day()));
@@ -96,20 +95,18 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 	graph, SLOT(autoUpdate(bool)));
 }
 
-void KCollectdGui::selectionChanged()
+void KCollectdGui::startDrag(QTreeWidgetItem *widget, int col)
 {
-  QTreeWidgetItemIterator i(listview, QTreeWidgetItemIterator::Selected);
-  graph->clear();
-#if 1
-  for ( ;*i; ++i) {
-    graph->add((*i)->text(2), (*i)->text(3), (*i)->text(1));
-  }
-#else
-  GraphInfo &k = graph->add((*i)->text(2), (*i)->text(3), (*i)->text(1));
-  ++i;
-  for ( ;*i; ++i) {
-    k.add((*i)->text(2), (*i)->text(3), (*i)->text(1));
-  }
-#endif
-  graph->update();
+  //       if (event->button() == Qt::LeftButton
+  // && iconLabel->geometry().contains(event->pos())) {
+  
+  QDrag *drag = new QDrag(this);
+  GraphMimeData *mimeData = new GraphMimeData;
+  
+  mimeData->setText(widget->text(1));
+  mimeData->setGraph(widget->text(2), widget->text(3), widget->text(1));
+  drag->setMimeData(mimeData);
+  //drag->setPixmap(iconPixmap);
+  
+  drag->exec();
 }

@@ -64,7 +64,8 @@ void get_datasources(const std::string &rrdfile, const std::string &info,
       SL.append(QString::fromUtf8((info + delimiter + *i).c_str()));
       SL.append(QString::fromUtf8(rrdfile.c_str()));
       SL.append(QString::fromUtf8(i->c_str()));
-      new QTreeWidgetItem(item, SL);
+      QTreeWidgetItem *dsitem = new QTreeWidgetItem(item, SL);
+      item->setFlags(dsitem->flags() & ~Qt::ItemIsSelectable);
    }
   }
 }

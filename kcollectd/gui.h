@@ -39,7 +39,7 @@ public:
   KCollectdGui(QWidget *parent=0);
 
 public slots:  
-  void selectionChanged();
+  void startDrag(QTreeWidgetItem * widget, int col);
   
 public:
   QTreeWidget *listview;
