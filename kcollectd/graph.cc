@@ -667,6 +667,24 @@ void Graph::paintEvent(QPaintEvent *e)
   drawAll();
 }
 
+Graph::graph_list::iterator Graph::graphAt(const QPoint &pos)
+{
+  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+    if (i->top() < pos.y() && i->bottom() > pos.y())
+      return i;
+  }
+  return glist.end();
+}
+
+Graph::graph_list::const_iterator Graph::graphAt(const QPoint &pos) const
+{
+  for(graph_list::const_iterator i = glist.begin(); i != glist.end(); ++i) {
+    if (i->top() < pos.y() && i->bottom() > pos.y())
+      return i;
+  }
+  return glist.end();
+}
+
 /**
  * switch auto-update on or off
  * 
@@ -698,11 +716,7 @@ void Graph::removeGraph()
   const int numgraphs =  glist.size();
   if (!numgraphs) return;
 
-  graph_list::iterator target = glist.end();
-  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
-    if (i->top() < origin_y && i->bottom() > origin_y)
-      target = i;
-  }
+  graph_list::iterator target = graphAt(QPoint(0, origin_y));
   if (target != glist.end()) {
     glist.erase(target);
   } 
@@ -732,8 +746,16 @@ void Graph::mousePressEvent(QMouseEvent *e)
 
   if (e->button() == Qt::RightButton) {
     QMenu menu(this);
-    menu.addAction(i18n("delete this subgraph"), this, SLOT(removeGraph()));
+
     menu.addAction(i18n("create new subgraph"), this, SLOT(splitGraph()));
+
+    // liste/map mit QAction* und datasource_iterator
+    if (graphAt(e->pos()) != glist.end()) {
+      menu.addAction(i18n("delete this subgraph"), this, SLOT(removeGraph()));
+      // ----
+      // alle delete datasources
+    }
+    
     QAction *action = menu.exec(e->globalPos());
     if (action) {
       
@@ -811,10 +833,40 @@ void Graph::timerEvent(QTimerEvent *event)
 /**
  *
  */
+
 void Graph::dragEnterEvent(QDragEnterEvent *event)
 {
-  if (event->mimeData()->hasFormat("text/plain"))
+  const GraphMimeData *mimeData = 
+    qobject_cast<const GraphMimeData *>(event->mimeData());
+
+  if (mimeData)
     event->acceptProposedAction();
+  else
+    event->ignore();
+}
+
+/**
+ *hermione•load•load•longterm
+ */
+void Graph::dragMoveEvent(QDragMoveEvent *event)
+{
+  const GraphMimeData *mimeData = 
+    qobject_cast<const GraphMimeData *>(event->mimeData());
+  if (!mimeData) return;
+
+  if(glist.size() == 0) {
+    event->accept(contentsRect());
+  } else {
+    graph_list::iterator i  = graphAt(event->pos());
+    if(i != glist.end()) {
+      QRect g;
+      g.setCoords(contentsRect().left(), i->top(), 
+	    contentsRect().right(), i->bottom());
+      event->accept(g);
+    } else {
+      event->ignore();
+    }
+  }
 }
 
 /**
@@ -828,12 +880,8 @@ void Graph::dropEvent(QDropEvent *event)
 
   event->acceptProposedAction();
   const int numgraphs =  glist.size();
-  graph_list::iterator target = glist.end();
   if (numgraphs) {
-    for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
-      if (i->top() < event->pos().y() && i->bottom() > event->pos().y())
-	target = i;
-    }
+    graph_list::iterator target = graphAt(event->pos());
     if (target != glist.end()) {
       target->add(mimeData->rrd(), mimeData->ds(), mimeData->label());
     } else {

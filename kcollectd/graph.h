@@ -58,8 +58,8 @@ public:
   Range minmax();
   Range minmax_adj(double *base);
 
-  int top() { return top_; }
-  int bottom() { return bottom_; }
+  int top() const { return top_; }
+  int bottom() const { return bottom_; }
   void top(int t) { top_ = t; }
   void bottom(int b) { bottom_ = b; }
 
@@ -124,6 +124,7 @@ class Graph : public QFrame
   virtual void timerEvent(QTimerEvent *event);
   // drag-and-drop
   virtual void dragEnterEvent(QDragEnterEvent *event);
+  virtual void dragMoveEvent(QDragMoveEvent *event);
   virtual void dropEvent(QDropEvent *event);
 				    
 public slots:
@@ -156,6 +157,9 @@ public slots:
        time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
   void drawGraph(QPainter &paint, const QRect &rect, const GraphInfo &gi, 
 	double min, double max);
+  
+  graph_list::iterator graphAt(const QPoint &pos);
+  graph_list::const_iterator graphAt(const QPoint &pos) const;
 
   // rrd-data
   graph_list glist;
