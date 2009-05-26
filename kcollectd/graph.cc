@@ -31,6 +31,8 @@
 
 #include <KLocale>
 #include <KGlobalSettings>
+#include <KIcon>
+#include <KMenu>
 
 #include "rrd_interface.h"
 #include "misc.h"
@@ -744,23 +746,40 @@ void Graph::mousePressEvent(QMouseEvent *e)
   origin_start = data_start;
   origin_end = data_end;
 
+  // context-menu
   if (e->button() == Qt::RightButton) {
-    QMenu menu(this);
-
-    menu.addAction(i18n("create new subgraph"), this, SLOT(splitGraph()));
-
-    // liste/map mit QAction* und datasource_iterator
-    if (graphAt(e->pos()) != glist.end()) {
-      menu.addAction(i18n("delete this subgraph"), this, SLOT(removeGraph()));
-      // ----
-      // alle delete datasources
-    }
+    // map for delete-datasource-options
+    typedef std::map<QAction *, GraphInfo::iterator> actionmap;
+    actionmap acts; 
     
-    QAction *action = menu.exec(e->globalPos());
-    if (action) {
+    // context-menu
+    KMenu menu(this);
+    
+    graph_list::iterator s_graph = graphAt(e->pos());
+    
+    menu.addAction(KIcon("list-add"), 
+	  i18n("create new subgraph"), this, SLOT(splitGraph()));
+
+    if (s_graph != glist.end()) {
+      menu.addAction(KIcon("edit-delete"),
+	    i18n("delete this subgraph"), this, SLOT(removeGraph()));
+      menu.addSeparator();
       
+      // generate entries to remove datasources
+      for(GraphInfo::iterator i = s_graph->begin(); i != s_graph->end(); ++i) {
+	QAction *T = menu.addAction(KIcon("list-remove"),
+	      i18n("remove ") + i->label);
+	acts[T] = i;
+      }
     }
-    
+
+    QAction *action = menu.exec(e->globalPos());
+
+    actionmap::iterator result = acts.find(action);
+    if (result != acts.end()) {
+      s_graph->erase(result->second);
+      update();
+    }
   }
 }
 

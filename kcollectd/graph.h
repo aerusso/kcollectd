@@ -71,6 +71,7 @@ public:
   iterator end()   { return dslist.end(); }
   const_iterator begin() const { return dslist.begin(); } 
   const_iterator end() const   { return dslist.end(); }
+  void erase(iterator i) { dslist.erase(i); }
 
 private:
   
