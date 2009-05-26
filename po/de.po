@@ -6,32 +6,36 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-05-03 13:23+0200\n"
-"PO-Revision-Date: 2009-05-03 13:36+0200\n"
+"POT-Creation-Date: 2009-05-26 22:31+0200\n"
+"PO-Revision-Date: 2009-05-26 22:32+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
-"Language-Team:  <de@li.org>\n"
+"Language-Team:  <en@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: graph.cc:212 ../kcollectd/graph.cc:134
+#: graph.cc:212 ../kcollectd/graph.cc:134 ../kcollectd/graph.cc:228
+#: ../kcollectd/graph.cc:258
 msgid "%A %Y-%m-%d"
 msgstr "%A, %d. %B %Y"
 
-#: graph.cc:214 ../kcollectd/graph.cc:136
+#: graph.cc:214 ../kcollectd/graph.cc:136 ../kcollectd/graph.cc:230
+#: ../kcollectd/graph.cc:260
 msgid "%A %Y-%m-%d %H:%M"
 msgstr "%A, %d. %B %Y %H:%M"
 
-#: graph.cc:216 ../kcollectd/graph.cc:138
+#: graph.cc:216 ../kcollectd/graph.cc:138 ../kcollectd/graph.cc:232
+#: ../kcollectd/graph.cc:262
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr "%A, %d. %B %Y %H:%M:%S"
 
-#: graph.cc:210 ../kcollectd/graph.cc:132
+#: graph.cc:210 ../kcollectd/graph.cc:132 ../kcollectd/graph.cc:226
+#: ../kcollectd/graph.cc:256
 msgid "%Y-%m"
 msgstr "%B %Y"
 
-#: ../kcollectd/gui.cc:76
+#: ../kcollectd/gui.cc:76 ../kcollectd/gui.cc:74
 msgid ""
 "<p>This button toggles the automatic update-and-follow mode</p><p>The "
 "automatic update-and-follow mode updates the graph every ten seconds. In "
@@ -46,7 +50,12 @@ msgstr ""
 "dar und kann nicht mehr verschoben werden.<br />Dadurch wird kcollectd zu "
 "einer Art Statusmonitor.</p>"
 
+#: ../kcollectd/graph.cc:656
+msgid "Drop sensors from list here"
+msgstr "Ziehen Sie Sensoren aus der Liste hierher"
+
 #: kcollectd.cc:104 ../kcollectd/kcollectd.cc:126
+#: ../kcollectd/kcollectd.cc:129
 msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
@@ -70,38 +79,51 @@ msgstr "Betrachter für Collectd-Datensammlungen"
 msgid "calling rrdinfo failed."
 msgstr "Aufruf von „rrdinfo“ fehlgeschlagen."
 
-#: graph.cc:220 ../kcollectd/graph.cc:142
+#: ../kcollectd/graph.cc:761
+msgid "create new subgraph"
+msgstr "Erzeuge neuen Untergraphen"
+
+#: ../kcollectd/graph.cc:765
+msgid "delete this subgraph"
+msgstr "Entferne diesen Untergraphen"
+
+#: graph.cc:220 ../kcollectd/graph.cc:142 ../kcollectd/graph.cc:236
+#: ../kcollectd/graph.cc:266
 msgid "from %1 to %2"
 msgstr "Von %1 bis %2"
 
-#: ../kcollectd/gui.cc:67
+#: ../kcollectd/gui.cc:67 ../kcollectd/gui.cc:65
 msgid "increases magnification"
 msgstr "erhöht die Vergrößerung"
 
-#: gui.cc:56 ../kcollectd/gui.cc:62
+#: gui.cc:56 ../kcollectd/gui.cc:62 ../kcollectd/gui.cc:60
 msgid "last day"
 msgstr "Letzter Tag"
 
-#: gui.cc:58 ../kcollectd/gui.cc:64
+#: gui.cc:58 ../kcollectd/gui.cc:64 ../kcollectd/gui.cc:62
 msgid "last hour"
 msgstr "Letzte Stunde"
 
-#: gui.cc:52 ../kcollectd/gui.cc:58
+#: gui.cc:52 ../kcollectd/gui.cc:58 ../kcollectd/gui.cc:56
 msgid "last month"
 msgstr "Letzter Monat"
 
-#: gui.cc:54 ../kcollectd/gui.cc:60
+#: gui.cc:54 ../kcollectd/gui.cc:60 ../kcollectd/gui.cc:58
 msgid "last week"
 msgstr "Letzte Woche"
 
-#: ../kcollectd/gui.cc:71
+#: ../kcollectd/gui.cc:71 ../kcollectd/gui.cc:69
 msgid "reduces magnification"
 msgstr "verringert die Vergrößerung"
 
-#: ../kcollectd/gui.cc:75
+#: ../kcollectd/graph.cc:771
+msgid "remove "
+msgstr "Entferne"
+
+#: ../kcollectd/gui.cc:75 ../kcollectd/gui.cc:73
 msgid "toggle automatic update-and-follow mode."
 msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 
-#: graph.cc:314 ../kcollectd/graph.cc:240
+#: graph.cc:314 ../kcollectd/graph.cc:240 ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr "Woche %V"

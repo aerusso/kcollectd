@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-05-03 13:23+0200\n"
+"POT-Creation-Date: 2009-05-26 22:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,27 +16,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: graph.cc:210 ../kcollectd/graph.cc:132
+#: graph.cc:210 ../kcollectd/graph.cc:132 ../kcollectd/graph.cc:226
+#: ../kcollectd/graph.cc:256
 msgid "%Y-%m"
 msgstr ""
 
-#: graph.cc:212 ../kcollectd/graph.cc:134
+#: graph.cc:212 ../kcollectd/graph.cc:134 ../kcollectd/graph.cc:228
+#: ../kcollectd/graph.cc:258
 msgid "%A %Y-%m-%d"
 msgstr ""
 
-#: graph.cc:214 ../kcollectd/graph.cc:136
+#: graph.cc:214 ../kcollectd/graph.cc:136 ../kcollectd/graph.cc:230
+#: ../kcollectd/graph.cc:260
 msgid "%A %Y-%m-%d %H:%M"
 msgstr ""
 
-#: graph.cc:216 ../kcollectd/graph.cc:138
+#: graph.cc:216 ../kcollectd/graph.cc:138 ../kcollectd/graph.cc:232
+#: ../kcollectd/graph.cc:262
 msgid "%A %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: graph.cc:220 ../kcollectd/graph.cc:142
+#: graph.cc:220 ../kcollectd/graph.cc:142 ../kcollectd/graph.cc:236
+#: ../kcollectd/graph.cc:266
 msgid "from %1 to %2"
 msgstr ""
 
-#: graph.cc:314 ../kcollectd/graph.cc:240
+#: graph.cc:314 ../kcollectd/graph.cc:240 ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr ""
 
@@ -44,19 +49,19 @@ msgstr ""
 msgid "Sensordata"
 msgstr ""
 
-#: gui.cc:52 ../kcollectd/gui.cc:58
+#: gui.cc:52 ../kcollectd/gui.cc:58 ../kcollectd/gui.cc:56
 msgid "last month"
 msgstr ""
 
-#: gui.cc:54 ../kcollectd/gui.cc:60
+#: gui.cc:54 ../kcollectd/gui.cc:60 ../kcollectd/gui.cc:58
 msgid "last week"
 msgstr ""
 
-#: gui.cc:56 ../kcollectd/gui.cc:62
+#: gui.cc:56 ../kcollectd/gui.cc:62 ../kcollectd/gui.cc:60
 msgid "last day"
 msgstr ""
 
-#: gui.cc:58 ../kcollectd/gui.cc:64
+#: gui.cc:58 ../kcollectd/gui.cc:64 ../kcollectd/gui.cc:62
 msgid "last hour"
 msgstr ""
 
@@ -69,6 +74,7 @@ msgid "Viewer for Collectd-databases"
 msgstr ""
 
 #: kcollectd.cc:104 ../kcollectd/kcollectd.cc:126
+#: ../kcollectd/kcollectd.cc:129
 msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
@@ -78,23 +84,39 @@ msgstr ""
 msgid "calling rrdinfo failed."
 msgstr ""
 
-#: ../kcollectd/gui.cc:67
+#: ../kcollectd/gui.cc:67 ../kcollectd/gui.cc:65
 msgid "increases magnification"
 msgstr ""
 
-#: ../kcollectd/gui.cc:71
+#: ../kcollectd/gui.cc:71 ../kcollectd/gui.cc:69
 msgid "reduces magnification"
 msgstr ""
 
-#: ../kcollectd/gui.cc:75
+#: ../kcollectd/gui.cc:75 ../kcollectd/gui.cc:73
 msgid "toggle automatic update-and-follow mode."
 msgstr ""
 
-#: ../kcollectd/gui.cc:76
+#: ../kcollectd/gui.cc:76 ../kcollectd/gui.cc:74
 msgid ""
 "<p>This button toggles the automatic update-and-follow mode</p><p>The "
 "automatic update-and-follow mode updates the graph every ten seconds. In "
 "this mode the graph still can be zoomed, but always displays <i>now</i> near "
 "the right edge and can not be scrolled any more.<br />This makes kcollectd "
 "some kind of status monitor.</p>"
+msgstr ""
+
+#: ../kcollectd/graph.cc:656
+msgid "Drop sensors from list here"
+msgstr ""
+
+#: ../kcollectd/graph.cc:761
+msgid "create new subgraph"
+msgstr ""
+
+#: ../kcollectd/graph.cc:765
+msgid "delete this subgraph"
+msgstr ""
+
+#: ../kcollectd/graph.cc:771
+msgid "remove "
 msgstr ""
