@@ -39,7 +39,6 @@
 #include "rrd_interface.h"
 #include "gui.h"
 
-
 #ifndef RRD_BASEDIR
 # define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
@@ -120,10 +119,10 @@ int main(int argc, char **argv)
 	ki18n("KCollectd"), VERSION, 
 	ki18n("Viewer for Collectd-databases"));
   KApplication a;
-  KCollectdGui gui;
+  KCollectdGui *gui = new KCollectdGui;
   
   try {
-    get_rrds(RRD_BASEDIR, gui.listview);
+    get_rrds(RRD_BASEDIR, gui->listview());
   } 
   catch(basic_filesystem_error<path> &e) {
     KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
@@ -135,7 +134,9 @@ int main(int argc, char **argv)
     exit(2);
   }
   
-  a.setTopWidget(&gui);
-  gui.show();
+  //gui.set(read_worksheet("/tmp/graph.kcollectd"));
+  
+  a.setTopWidget(gui);
+  gui->show();
   return a.exec();
 }

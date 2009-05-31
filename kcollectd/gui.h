@@ -26,24 +26,84 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <qwidget.h>
+#include <KMainWindow>
+#include <kactioncollection.h>
+
+#include "graph.h"
 
 class QLabel;
 class Graph;
 class QTreeWidget;
+class QVBoxLayout;
+class KAction;
+class KPushButton;
 
-class KCollectdGui : public QWidget
+class KCollectdGui : public KMainWindow // QWidget
 {
   Q_OBJECT;
 public:
   KCollectdGui(QWidget *parent=0);
 
+  QTreeWidget *listview() { return listview_; }
+  KActionCollection* actionCollection() { return action_collection; }
+
+  void set(Graph *graph);
+
 public slots:  
   void startDrag(QTreeWidgetItem * widget, int col);
+  virtual void last_month();
+  virtual void last_week();
+  virtual void last_day();
+  virtual void last_hour();
+  virtual void zoomIn();
+  virtual void zoomOut();
+  virtual void autoUpdate(bool active);
+  virtual void splitGraph();
+
+private:
+  QTreeWidget *listview_;
+  QVBoxLayout *vbox;
+  Graph * graph;
+  KPushButton *auto_button;
+  KAction *auto_action;
+
+  KActionCollection *action_collection;
   
-public:
-  QTreeWidget *listview;
-  Graph *graph;
 };
+
+inline void KCollectdGui::last_month()
+{
+  graph->last(3600*24*31);
+}
+
+inline void KCollectdGui::last_week()
+{
+  graph->last(3600*24*7);
+}
+
+inline void KCollectdGui::last_day()
+{
+  graph->last(3600*24);
+}
+
+inline void KCollectdGui::last_hour()
+{
+  graph->last(3600);
+}
+
+inline void KCollectdGui::zoomIn()
+{
+  graph->zoom(1.0/1.259921050);
+}
+
+inline void KCollectdGui::zoomOut()
+{
+  graph->zoom(1.259921050);
+}
+
+inline void KCollectdGui::splitGraph()
+{
+  graph->splitGraph();
+}
 
 #endif

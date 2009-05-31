@@ -24,34 +24,88 @@
 #include <QLabel>
 #include <QWidget>
 #include <QTreeWidget>
+#include <QWhatsThis>
 
+#include <kactioncollection.h>
 #include <KPushButton>
 #include <KIconLoader>
 #include <KGlobal>
 #include <KLocale>
-#include <QWhatsThis>
+#include <KMainWindow>
+#include <KMenuBar>
+#include <KMenu>
+#include <KStandardAction>
+#include <KAction>
+#include <KToggleAction>
+#include <kactioncollection.h>
 
 #include "graph.h"
 #include "gui.moc"
 
+
+static struct {
+  KStandardAction::StandardAction actionType;
+  const char *name;
+  const char *slot;
+} standard_actions[] = {
+  { KStandardAction::ZoomIn,  "zoomIn",  SLOT(zoomIn()) },
+  { KStandardAction::ZoomOut, "zoomOut", SLOT(zoomOut()) },
+  { KStandardAction::Open,    "open",    SLOT(open()) },
+  { KStandardAction::SaveAs,  "save",    SLOT(save()) },
+  { KStandardAction::Quit,    "quit",    SLOT(quit()) }
+};
+
+static struct {
+  const char *label;
+  const char *name;
+  const char *slot;
+} normal_actions[] = {
+  { "last hour",   "lastHour",   SLOT(last_hour()) },
+  { "last day",    "lastDay",    SLOT(last_day()) },
+  { "last week",   "lastWeek",   SLOT(last_week()) },
+  { "last month",  "lastMonth",  SLOT(last_month()) },
+  { "split graph", "splitGraph", SLOT(splitGraph()) },
+};
+
 KCollectdGui::KCollectdGui(QWidget *parent)
-  : QWidget(parent)
+  : KMainWindow(parent)
 {
-  QHBoxLayout *hbox = new QHBoxLayout(this);
+  // setup actions
+  action_collection = new KActionCollection(parent);
+  // standard_actions
+  for (size_t i=0; i< sizeof(standard_actions)/sizeof(*standard_actions); ++i)
+    actionCollection()->addAction(standard_actions[i].actionType, 
+	  standard_actions[i].name, this, standard_actions[i].slot);
+  // normal actions
+  for (size_t i=0; i< sizeof(normal_actions)/sizeof(*normal_actions); ++i) {
+    KAction *act = new KAction(normal_actions[i].label, this);
+    connect(act, SIGNAL(triggered()), this, normal_actions[i].slot);
+    actionCollection()->addAction(normal_actions[i].name, act);
+  }
+  // toggle_actions
+  auto_action = new KAction(KIcon("chronometer"), "automatic Update", this);
+  auto_action->setCheckable(true);
+  actionCollection()->addAction("autoUpdate", auto_action);
+  connect(auto_action, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 
-  listview = new QTreeWidget();
-  listview->setColumnCount(1);
-  listview->setHeaderLabels(QStringList(i18n("Sensordata")));
-  listview->setRootIsDecorated(true);
-  listview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  hbox->addWidget(listview);
+  // build widgets
+  QWidget *main_widget = new QWidget;
+  setCentralWidget(main_widget);
 
-  QVBoxLayout *vbox = new QVBoxLayout();
+  QHBoxLayout *hbox = new QHBoxLayout(main_widget);
+  listview_ = new QTreeWidget;
+  listview_->setColumnCount(1);
+  listview_->setHeaderLabels(QStringList(i18n("Sensordata")));
+  listview_->setRootIsDecorated(true);
+  listview_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+  hbox->addWidget(listview_);
+
+  vbox = new QVBoxLayout;
   hbox->addLayout(vbox);
-  graph = new Graph();
+  graph = new Graph;
   vbox->addWidget(graph);
 
-  QHBoxLayout *hbox2 = new QHBoxLayout();
+  QHBoxLayout *hbox2 = new QHBoxLayout;
   vbox->addLayout(hbox2);
   KPushButton *last_month = new KPushButton(i18n("last month"));
   hbox2->addWidget(last_month);
@@ -69,9 +123,9 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   zoom_out->setToolTip(i18n("reduces magnification"));
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
-  KPushButton *auto_update = new KPushButton(KIcon("chronometer"), QString());
-  auto_update->setToolTip(i18n("toggle automatic update-and-follow mode."));
-  auto_update->setWhatsThis(i18n("<p>This button toggles the "
+  auto_button = new KPushButton(KIcon("chronometer"), QString());
+  auto_button->setToolTip(i18n("toggle automatic update-and-follow mode."));
+  auto_button->setWhatsThis(i18n("<p>This button toggles the "
 	      "automatic update-and-follow mode</p>"
 	      "<p>The automatic update-and-follow mode updates the graph "
 	      "every ten seconds. "
@@ -79,20 +133,44 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 	      "<i>now</i> near the right edge and "
 	      "can not be scrolled any more.<br />"
 	      "This makes kcollectd some kind of status monitor.</p>"));
-  auto_update->setCheckable(true);
-  auto_update->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  hbox2->addWidget(auto_update);
+  auto_button->setCheckable(true);
+  auto_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  hbox2->addWidget(auto_button);
 
-  connect(listview, SIGNAL(itemPressed(QTreeWidgetItem *, int)), 
+  // signals
+  connect(listview_, SIGNAL(itemPressed(QTreeWidgetItem *, int)), 
 	SLOT(startDrag(QTreeWidgetItem *, int)));
-  connect(last_month, SIGNAL(clicked()), graph, SLOT(last_month()));
-  connect(last_week, SIGNAL(clicked()), graph, SLOT(last_week()));
-  connect(last_day, SIGNAL(clicked()), graph, SLOT(last_day()));
-  connect(last_hour, SIGNAL(clicked()), graph, SLOT(last_hour()));
-  connect(zoom_in, SIGNAL(clicked()), graph, SLOT(zoomIn()));
-  connect(zoom_out, SIGNAL(clicked()), graph, SLOT(zoomOut()));
-  connect(auto_update, SIGNAL(toggled(bool)), 
-	graph, SLOT(autoUpdate(bool)));
+  connect(last_month,  SIGNAL(clicked()), this, SLOT(last_month()));
+  connect(last_week,   SIGNAL(clicked()), this, SLOT(last_week()));
+  connect(last_day,    SIGNAL(clicked()), this, SLOT(last_day()));
+  connect(last_hour,   SIGNAL(clicked()), this, SLOT(last_hour()));
+  connect(zoom_in,     SIGNAL(clicked()), this, SLOT(zoomIn()));
+  connect(zoom_out,    SIGNAL(clicked()), this, SLOT(zoomOut()));
+  connect(auto_button, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
+
+  // Menu
+  KMenu *fileMenu = new KMenu(i18n("&File"));
+  menuBar()->addMenu(fileMenu);
+  fileMenu->addAction(actionCollection()->action("open"));
+  fileMenu->addAction(actionCollection()->action("save"));
+  fileMenu->addSeparator();
+  fileMenu->addAction(actionCollection()->action("quit"));
+  
+  KMenu *editMenu = new KMenu(i18n("&Edit"));
+  menuBar()->addMenu(editMenu);
+  editMenu->addAction(actionCollection()->action("splitGraph"));
+
+  KMenu *viewMenu = new KMenu(i18n("&View"));
+  menuBar()->addMenu(viewMenu);
+  viewMenu->addAction(actionCollection()->action("zoomIn"));
+  viewMenu->addAction(actionCollection()->action("zoomOut"));
+  viewMenu->addSeparator();
+  viewMenu->addAction(actionCollection()->action("lastHour"));
+  viewMenu->addAction(actionCollection()->action("lastDay"));
+  viewMenu->addAction(actionCollection()->action("lastWeek"));
+  viewMenu->addAction(actionCollection()->action("lastMonth"));
+  viewMenu->addSeparator();
+  viewMenu->addAction(actionCollection()->action("autoUpdate"));
 }
 
 void KCollectdGui::startDrag(QTreeWidgetItem *widget, int col)
@@ -110,3 +188,21 @@ void KCollectdGui::startDrag(QTreeWidgetItem *widget, int col)
   
   drag->exec();
 }
+
+void KCollectdGui::set(Graph *new_graph)
+{
+  if (graph) {
+    vbox->removeWidget(graph);
+    delete graph;
+  }
+  vbox->insertWidget(0, new_graph);
+}
+
+void KCollectdGui::autoUpdate(bool t)
+{
+  std::cout << "autoUpdate" << std::endl;
+  auto_button->setChecked(t);
+  auto_action->setChecked(t);
+  graph->autoUpdate(t);
+}
+

@@ -104,14 +104,18 @@ class Graph : public QFrame
  public:
 
   typedef std::vector<GraphInfo> graph_list;
+  typedef graph_list::iterator iterator;
+  typedef graph_list::const_iterator const_iterator;
 
-  Graph(QWidget *parent=0);
+  explicit Graph(QWidget *parent=0);
   Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
 	const char *name=0);
 
   void clear();
   GraphInfo &add(const QString &rrd, const QString &ds, const QString &label);
   GraphInfo &add();
+
+  void autoUpdate(bool active);
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -127,15 +131,14 @@ class Graph : public QFrame
   virtual void dragEnterEvent(QDragEnterEvent *event);
   virtual void dragMoveEvent(QDragMoveEvent *event);
   virtual void dropEvent(QDropEvent *event);
-				    
+  
+  // Iterators
+  iterator begin() { return glist.begin(); }
+  iterator end()   { return glist.end(); }
+  const_iterator begin() const { return glist.begin(); }
+  const_iterator end() const   { return glist.end(); }
+					   
 public slots:
-  virtual void last_month();
-  virtual void last_week();
-  virtual void last_day();
-  virtual void last_hour();
-  virtual void zoomIn();
-  virtual void zoomOut();
-  virtual void autoUpdate(bool active);
   virtual void removeGraph();
   virtual void splitGraph();
 
@@ -188,7 +191,6 @@ public slots:
   // Auto-Update
   int autoUpdateTimer;
   time_t timer_diff;
-
 };
 
 /**
@@ -235,35 +237,6 @@ inline GraphInfo &Graph::add()
   return glist.back();
 }
 
-inline void Graph::last_month()
-{
-  last(3600*24*31);
-}
-
-inline void Graph::last_week()
-{
-  last(3600*24*7);
-}
-
-inline void Graph::last_day()
-{
-  last(3600*24);
-}
-
-inline void Graph::last_hour()
-{
-  last(3600);
-}
-
-inline void Graph::zoomIn()
-{
-  zoom(1.0/1.259921050);
-}
-
-inline void Graph::zoomOut()
-{
-  zoom(1.259921050);
-}
 
 inline QSize Graph::sizeHint() const
 {

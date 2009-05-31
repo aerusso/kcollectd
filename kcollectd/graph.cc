@@ -27,7 +27,6 @@
 #include <QPainter>
 #include <QPolygon>
 #include <QRect>
-#include <QMenu>
 
 #include <KLocale>
 #include <KGlobalSettings>
