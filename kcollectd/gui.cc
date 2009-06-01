@@ -25,6 +25,9 @@
 #include <QWidget>
 #include <QTreeWidget>
 #include <QWhatsThis>
+#include <QXmlStreamWriter>
+#include <QFile>
+#include <QDomDocument>
 
 #include <kactioncollection.h>
 #include <KPushButton>
@@ -37,7 +40,9 @@
 #include <KStandardAction>
 #include <KAction>
 #include <KToggleAction>
+#include <KFileDialog>
 #include <kactioncollection.h>
+#include <kmessagebox.h> 
 
 #include "graph.h"
 #include "gui.moc"
@@ -50,9 +55,9 @@ static struct {
 } standard_actions[] = {
   { KStandardAction::ZoomIn,  "zoomIn",  SLOT(zoomIn()) },
   { KStandardAction::ZoomOut, "zoomOut", SLOT(zoomOut()) },
-  { KStandardAction::Open,    "open",    SLOT(open()) },
+  { KStandardAction::Open,    "open",    SLOT(load()) },
   { KStandardAction::SaveAs,  "save",    SLOT(save()) },
-  { KStandardAction::Quit,    "quit",    SLOT(quit()) }
+  { KStandardAction::Quit,    "quit",    SLOT(close()) }
 };
 
 static struct {
@@ -60,30 +65,33 @@ static struct {
   const char *name;
   const char *slot;
 } normal_actions[] = {
-  { "last hour",   "lastHour",   SLOT(last_hour()) },
-  { "last day",    "lastDay",    SLOT(last_day()) },
-  { "last week",   "lastWeek",   SLOT(last_week()) },
-  { "last month",  "lastMonth",  SLOT(last_month()) },
-  { "split graph", "splitGraph", SLOT(splitGraph()) },
+  { I18N_NOOP("last hour"),        "lastHour",   SLOT(last_hour()) },
+  { I18N_NOOP("last day"),         "lastDay",    SLOT(last_day()) },
+  { I18N_NOOP("last week"),        "lastWeek",   SLOT(last_week()) },
+  { I18N_NOOP("last month"),       "lastMonth",  SLOT(last_month()) },
+  { I18N_NOOP("add new subgraph"), "splitGraph", SLOT(splitGraph()) },
 };
 
+/** 
+ * Constructs a KCollectdGui
+ * 
+ * @param parent parent-widget see KMainWindow
+ */
 KCollectdGui::KCollectdGui(QWidget *parent)
-  : KMainWindow(parent)
+  : KMainWindow(parent), action_collection(parent)
 {
-  // setup actions
-  action_collection = new KActionCollection(parent);
   // standard_actions
   for (size_t i=0; i< sizeof(standard_actions)/sizeof(*standard_actions); ++i)
     actionCollection()->addAction(standard_actions[i].actionType, 
 	  standard_actions[i].name, this, standard_actions[i].slot);
   // normal actions
   for (size_t i=0; i< sizeof(normal_actions)/sizeof(*normal_actions); ++i) {
-    KAction *act = new KAction(normal_actions[i].label, this);
+    KAction *act = new KAction(i18n(normal_actions[i].label), this);
     connect(act, SIGNAL(triggered()), this, normal_actions[i].slot);
     actionCollection()->addAction(normal_actions[i].name, act);
   }
   // toggle_actions
-  auto_action = new KAction(KIcon("chronometer"), "automatic Update", this);
+  auto_action = new KAction(KIcon("chronometer"), i18n("automatic update"), this);
   auto_action->setCheckable(true);
   actionCollection()->addAction("autoUpdate", auto_action);
   connect(auto_action, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
@@ -121,6 +129,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   hbox2->addWidget(zoom_in);
   KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), QString());
   zoom_out->setToolTip(i18n("reduces magnification"));
+  zoom_out->setWhatsThis(i18n("zooms out"));
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
   auto_button = new KPushButton(KIcon("chronometer"), QString());
@@ -173,6 +182,10 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addAction(actionCollection()->action("autoUpdate"));
 }
 
+KCollectdGui::~KCollectdGui()
+{
+}
+
 void KCollectdGui::startDrag(QTreeWidgetItem *widget, int col)
 {
   //       if (event->button() == Qt::LeftButton
@@ -200,9 +213,100 @@ void KCollectdGui::set(Graph *new_graph)
 
 void KCollectdGui::autoUpdate(bool t)
 {
-  std::cout << "autoUpdate" << std::endl;
   auto_button->setChecked(t);
   auto_action->setChecked(t);
   graph->autoUpdate(t);
 }
 
+void KCollectdGui::load()
+{
+  QString filename = KFileDialog::getOpenFileName(KUrl(), 
+	"application/x-kcollectd", this);
+  if (filename.isEmpty()) return;
+
+  load(filename);
+}
+
+void KCollectdGui::save()
+{
+  QString filename = KFileDialog::getSaveFileName(KUrl(), 
+	"application/x-kcollectd", this);
+  if (filename.isEmpty()) return;
+
+  QFile out(filename);
+  if (out.exists()) {
+    int answer = KMessageBox::questionYesNo(this, 
+	  i18n("file ‘%1’ allready exists.\n"
+		"Do you want to overwrite it?", filename));
+    if (answer != KMessageBox::Yes) {
+      return;
+    }
+  }
+  out.close();
+  save(filename);
+}
+
+void KCollectdGui::load(const QString &filename)
+{
+  QFile in(filename);
+  if (in.open(QIODevice::ReadOnly)) {
+    QDomDocument doc;
+    doc.setContent(&in);
+    
+    graph->clear();
+    
+    QDomElement t = doc.documentElement().firstChildElement("tab");
+    while(!t.isNull()) {
+      QDomElement g = t.firstChildElement("graph");
+      while(!g.isNull()) {
+	GraphInfo &graphinfo = graph->add();
+	QDomElement p = g.firstChildElement("plot");
+	while(!p.isNull()) {
+	  graphinfo.add(p.attribute("rrd"), p.attribute("ds"), p.attribute("label"));
+	  p = p.nextSiblingElement();
+	}
+	g = g.nextSiblingElement();
+      }
+      t = t.nextSiblingElement();
+    }
+  } else {
+    KMessageBox::detailedSorry(this, 
+	  i18n("reading file ‘%1’ failed.", filename), 
+	  i18n("System message is: ‘%1’", in.errorString()));
+  }
+}
+
+void KCollectdGui::save(const QString &filename)
+{
+  QFile out(filename);
+  if (out.open(QIODevice::WriteOnly)) {
+    QXmlStreamWriter stream(&out);
+    stream.setAutoFormatting(true);
+    stream.writeStartDocument();
+    stream.writeDTD("<!DOCTYPE kcollectd SYSTEM "
+	  "\"/usr/share/kcollectd/kcollectd.xsd\">");
+    
+    stream.writeStartElement("kcollectd");
+    stream.writeStartElement("tab");
+    for(Graph::const_iterator i = graph->begin(); i != graph->end(); ++i) {
+      stream.writeStartElement("graph");
+      for(GraphInfo::const_iterator j = i->begin(); j != i->end(); ++j) {
+	stream.writeStartElement("plot");
+	stream.writeAttribute("rrd", j->rrd);
+	stream.writeAttribute("ds", j->ds);
+	stream.writeAttribute("label", j->label);
+	stream.writeEndElement();
+      }
+      stream.writeEndElement();
+    }
+    stream.writeEndElement();
+    stream.writeEndElement();
+    
+    stream.writeEndDocument();
+    out.close();
+  } else {
+    KMessageBox::detailedSorry(this, 
+	  i18n("opening the file ‘%1’ for writing failed.", filename), 
+	  i18n("System message is: ‘%1’", out.errorString()));
+  }
+}

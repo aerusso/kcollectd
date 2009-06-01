@@ -15,6 +15,7 @@ set(rrd_LIBRARIES rrd)
 include_directories(${KDE4_INCLUDES} ${Boost_INCLUDE_DIRS})
 target_link_libraries(kcollectd 
   ${KDE4_KDEUI_LIBS} 
+  ${KDE4_KIO_LIBS} 
   ${Boost_LIBRARIES} 
   ${rrd_LIBRARIES})
 install(TARGETS kcollectd  ${INSTALL_TARGETS_DEFAULT_ARGS})

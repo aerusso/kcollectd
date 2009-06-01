@@ -43,11 +43,14 @@ class KCollectdGui : public KMainWindow // QWidget
   Q_OBJECT;
 public:
   KCollectdGui(QWidget *parent=0);
+  virtual ~KCollectdGui();
 
   QTreeWidget *listview() { return listview_; }
-  KActionCollection* actionCollection() { return action_collection; }
+  KActionCollection* actionCollection() { return &action_collection; }
 
   void set(Graph *graph);
+  void load(const QString &filename);
+  void save(const QString &filename);
 
 public slots:  
   void startDrag(QTreeWidgetItem * widget, int col);
@@ -59,6 +62,8 @@ public slots:
   virtual void zoomOut();
   virtual void autoUpdate(bool active);
   virtual void splitGraph();
+  virtual void load();
+  virtual void save();
 
 private:
   QTreeWidget *listview_;
@@ -67,7 +72,7 @@ private:
   KPushButton *auto_button;
   KAction *auto_action;
 
-  KActionCollection *action_collection;
+  KActionCollection action_collection;
   
 };
 

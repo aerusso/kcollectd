@@ -118,9 +118,15 @@ int main(int argc, char **argv)
   KCmdLineArgs::init(argc, argv, "kcollectd", "",
 	ki18n("KCollectd"), VERSION, 
 	ki18n("Viewer for Collectd-databases"));
-  KApplication a;
+
+  KCmdLineOptions options;
+  options.add("+[file]", ki18n("A kcolletd-file to open"));
+  KCmdLineArgs::addCmdLineOptions( options );
+
+  KApplication application;
   KCollectdGui *gui = new KCollectdGui;
-  
+
+  // load collectd tree
   try {
     get_rrds(RRD_BASEDIR, gui->listview());
   } 
@@ -133,10 +139,15 @@ int main(int argc, char **argv)
     KMessageBox::error(0, e.what());
     exit(2);
   }
-  
-  //gui.set(read_worksheet("/tmp/graph.kcollectd"));
-  
-  a.setTopWidget(gui);
+
+  // handling arguments
+  KCmdLineArgs *args = KCmdLineArgs::parsedArgs();  
+  if(args->count() == 1) {
+    gui->load(args->arg(0));
+  }
+
+  // run
+  application.setTopWidget(gui);
   gui->show();
-  return a.exec();
+  return application.exec();
 }

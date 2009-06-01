@@ -186,6 +186,7 @@ void Graph::clear()
 {
   glist.clear();
   data_is_valid = false;
+  update();
 }
 
 void Graph::drawLabel(QPainter &paint, int left, int right, int y, 
@@ -757,7 +758,7 @@ void Graph::mousePressEvent(QMouseEvent *e)
     graph_list::iterator s_graph = graphAt(e->pos());
     
     menu.addAction(KIcon("list-add"), 
-	  i18n("create new subgraph"), this, SLOT(splitGraph()));
+	  i18n("add new subgraph"), this, SLOT(splitGraph()));
 
     if (s_graph != glist.end()) {
       menu.addAction(KIcon("edit-delete"),
