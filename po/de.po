@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-01 15:22+0200\n"
-"PO-Revision-Date: 2009-06-01 15:24+0200\n"
+"PO-Revision-Date: 2009-06-01 23:09+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
 "Language-Team:  <en@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -136,7 +136,7 @@ msgstr "verringert die Vergrößerung"
 
 #: ../kcollectd/graph.cc:771
 msgid "remove "
-msgstr "Entferne"
+msgstr "Entferne "
 
 #: ../kcollectd/gui.cc:132
 msgid "toggle automatic update-and-follow mode."
@@ -145,3 +145,4 @@ msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 #: ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr "Woche %V"
+
