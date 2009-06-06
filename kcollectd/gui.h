@@ -61,6 +61,7 @@ public slots:
   virtual void zoomIn();
   virtual void zoomOut();
   virtual void autoUpdate(bool active);
+  virtual void hideTree(bool active);
   virtual void splitGraph();
   virtual void load();
   virtual void save();

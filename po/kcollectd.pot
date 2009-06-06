@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-01 15:22+0200\n"
+"POT-Creation-Date: 2009-06-06 13:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,7 @@ msgstr ""
 msgid "Drop sensors from list here"
 msgstr ""
 
-#: ../kcollectd/graph.cc:761 ../kcollectd/gui.cc:72
+#: ../kcollectd/graph.cc:761
 msgid "add new subgraph"
 msgstr ""
 
@@ -56,43 +56,67 @@ msgstr ""
 msgid "remove "
 msgstr ""
 
-#: ../kcollectd/gui.cc:68 ../kcollectd/gui.cc:121
-msgid "last hour"
+#: ../kcollectd/gui.cc:69
+msgid "Last Hour"
 msgstr ""
 
-#: ../kcollectd/gui.cc:69 ../kcollectd/gui.cc:119
-msgid "last day"
+#: ../kcollectd/gui.cc:70
+msgid "Last Day"
 msgstr ""
 
-#: ../kcollectd/gui.cc:70 ../kcollectd/gui.cc:117
-msgid "last week"
+#: ../kcollectd/gui.cc:71
+msgid "Last Week"
 msgstr ""
 
-#: ../kcollectd/gui.cc:71 ../kcollectd/gui.cc:115
-msgid "last month"
+#: ../kcollectd/gui.cc:72
+msgid "Last Month"
 msgstr ""
 
-#: ../kcollectd/gui.cc:91
-msgid "automatic update"
+#: ../kcollectd/gui.cc:73
+msgid "Add New Subgraph"
 msgstr ""
 
-#: ../kcollectd/gui.cc:103
+#: ../kcollectd/gui.cc:95
+msgid "Automatic Update"
+msgstr ""
+
+#: ../kcollectd/gui.cc:101
+msgid "Hide Datasource Tree"
+msgstr ""
+
+#: ../kcollectd/gui.cc:114
 msgid "Sensordata"
 msgstr ""
 
-#: ../kcollectd/gui.cc:124
-msgid "increases magnification"
+#: ../kcollectd/gui.cc:126
+msgid "last month"
 msgstr ""
 
 #: ../kcollectd/gui.cc:128
-msgid "reduces magnification"
+msgid "last week"
+msgstr ""
+
+#: ../kcollectd/gui.cc:130
+msgid "last day"
 msgstr ""
 
 #: ../kcollectd/gui.cc:132
+msgid "last hour"
+msgstr ""
+
+#: ../kcollectd/gui.cc:135
+msgid "increases magnification"
+msgstr ""
+
+#: ../kcollectd/gui.cc:139
+msgid "reduces magnification"
+msgstr ""
+
+#: ../kcollectd/gui.cc:143
 msgid "toggle automatic update-and-follow mode."
 msgstr ""
 
-#: ../kcollectd/gui.cc:133
+#: ../kcollectd/gui.cc:145
 msgid ""
 "<p>This button toggles the automatic update-and-follow mode</p><p>The "
 "automatic update-and-follow mode updates the graph every ten seconds. In "
@@ -101,33 +125,33 @@ msgid ""
 "some kind of status monitor.</p>"
 msgstr ""
 
-#: ../kcollectd/gui.cc:157
+#: ../kcollectd/gui.cc:171
 msgid "&File"
 msgstr ""
 
-#: ../kcollectd/gui.cc:164
+#: ../kcollectd/gui.cc:178
 msgid "&Edit"
 msgstr ""
 
-#: ../kcollectd/gui.cc:168
+#: ../kcollectd/gui.cc:182
 msgid "&View"
 msgstr ""
 
-#: ../kcollectd/gui.cc:232
+#: ../kcollectd/gui.cc:261
 msgid ""
 "file ‘%1’ allready exists.\n"
 "Do you want to overwrite it?"
 msgstr ""
 
-#: ../kcollectd/gui.cc:267
+#: ../kcollectd/gui.cc:296
 msgid "reading file ‘%1’ failed."
 msgstr ""
 
-#: ../kcollectd/gui.cc:268 ../kcollectd/gui.cc:303
+#: ../kcollectd/gui.cc:297 ../kcollectd/gui.cc:332
 msgid "System message is: ‘%1’"
 msgstr ""
 
-#: ../kcollectd/gui.cc:302
+#: ../kcollectd/gui.cc:331
 msgid "opening the file ‘%1’ for writing failed."
 msgstr ""
 

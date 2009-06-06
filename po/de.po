@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-01 15:22+0200\n"
-"PO-Revision-Date: 2009-06-01 23:09+0200\n"
+"POT-Creation-Date: 2009-06-06 13:09+0200\n"
+"PO-Revision-Date: 2009-06-06 13:12+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
 "Language-Team:  <en@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -31,19 +31,19 @@ msgstr "%A, %d. %B %Y %H:%M:%S"
 msgid "%Y-%m"
 msgstr "%B %Y"
 
-#: ../kcollectd/gui.cc:164
+#: ../kcollectd/gui.cc:178
 msgid "&Edit"
 msgstr "&Bearbeiten"
 
-#: ../kcollectd/gui.cc:157
+#: ../kcollectd/gui.cc:171
 msgid "&File"
 msgstr "&Datei"
 
-#: ../kcollectd/gui.cc:168
+#: ../kcollectd/gui.cc:182
 msgid "&View"
 msgstr "&Ansicht"
 
-#: ../kcollectd/gui.cc:133
+#: ../kcollectd/gui.cc:145
 msgid ""
 "<p>This button toggles the automatic update-and-follow mode</p><p>The "
 "automatic update-and-follow mode updates the graph every ten seconds. In "
@@ -51,12 +51,20 @@ msgid ""
 "the right edge and can not be scrolled any more.<br />This makes kcollectd "
 "some kind of status monitor.</p>"
 msgstr ""
-"<p>Dieser Knopf schaltet den automatischen aktualisierungs-und-folge Modus "
-"an an und aus</p><p>Der automatische aktualisierungs-und-folge Modus "
+"<p>Dieser Knopf schaltet den automatischen Aktualisierung-und-folge Modus an "
+"an und aus</p><p>Der automatische aktualisierungs-und-folge Modus "
 "aktualisiert den Graph alle zehn Sekunden. In diesem Modus kann der Graph "
 "noch gezoomt werden, stellt aber immer <i>Jetzt</i> nahe der rechten Kante "
 "dar und kann nicht mehr verschoben werden.<br />Dadurch wird kcollectd zu "
 "einer Art Statusmonitor.</p>"
+
+#: ../kcollectd/gui.cc:73
+msgid "Add New Subgraph"
+msgstr "Erzeuge neuen Untergraphen"
+
+#: ../kcollectd/gui.cc:95
+msgid "Automatic Update"
+msgstr "automatisches Update"
 
 #: ../kcollectd/graph.cc:656
 msgid "Drop sensors from list here"
@@ -67,30 +75,46 @@ msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
 msgstr ""
-"collectd-Struktur unter ‚%1‘ konnte nicht gelesen werden.\n"
+"Die collectd-Struktur unter ‚%1‘ konnte nicht gelesen werden.\n"
 "Breche ab."
 
-#: ../kcollectd/gui.cc:103
+#: ../kcollectd/gui.cc:101
+msgid "Hide Datasource Tree"
+msgstr "Blende Datenquellenbaum aus"
+
+#: ../kcollectd/gui.cc:70
+msgid "Last Day"
+msgstr "Letzter Tag"
+
+#: ../kcollectd/gui.cc:69
+msgid "Last Hour"
+msgstr "Letzte Stunde"
+
+#: ../kcollectd/gui.cc:72
+msgid "Last Month"
+msgstr "Letzter Monat"
+
+#: ../kcollectd/gui.cc:71
+msgid "Last Week"
+msgstr "Letzte Woche"
+
+#: ../kcollectd/gui.cc:114
 msgid "Sensordata"
 msgstr "Sensordaten"
 
-#: ../kcollectd/gui.cc:268 ../kcollectd/gui.cc:303
+#: ../kcollectd/gui.cc:297 ../kcollectd/gui.cc:332
 msgid "System message is: ‘%1’"
 msgstr "Systemnachricht lautet: ‚%1‘"
 
-#: ../kcollectd/graph.cc:761 ../kcollectd/gui.cc:72
+#: ../kcollectd/graph.cc:761
 msgid "add new subgraph"
 msgstr "Erzeuge neuen Untergraphen"
-
-#: ../kcollectd/gui.cc:91
-msgid "automatic update"
-msgstr "automatisches Update"
 
 #: ../kcollectd/graph.cc:765
 msgid "delete this subgraph"
 msgstr "Entferne diesen Untergraphen"
 
-#: ../kcollectd/gui.cc:232
+#: ../kcollectd/gui.cc:261
 msgid ""
 "file ‘%1’ allready exists.\n"
 "Do you want to overwrite it?"
@@ -102,35 +126,35 @@ msgstr ""
 msgid "from %1 to %2"
 msgstr "Von %1 bis %2"
 
-#: ../kcollectd/gui.cc:124
+#: ../kcollectd/gui.cc:135
 msgid "increases magnification"
 msgstr "erhöht die Vergrößerung"
 
-#: ../kcollectd/gui.cc:69 ../kcollectd/gui.cc:119
+#: ../kcollectd/gui.cc:130
 msgid "last day"
 msgstr "Letzter Tag"
 
-#: ../kcollectd/gui.cc:68 ../kcollectd/gui.cc:121
+#: ../kcollectd/gui.cc:132
 msgid "last hour"
 msgstr "Letzte Stunde"
 
-#: ../kcollectd/gui.cc:71 ../kcollectd/gui.cc:115
+#: ../kcollectd/gui.cc:126
 msgid "last month"
 msgstr "Letzter Monat"
 
-#: ../kcollectd/gui.cc:70 ../kcollectd/gui.cc:117
+#: ../kcollectd/gui.cc:128
 msgid "last week"
 msgstr "Letzte Woche"
 
-#: ../kcollectd/gui.cc:302
+#: ../kcollectd/gui.cc:331
 msgid "opening the file ‘%1’ for writing failed."
 msgstr "Das Öffnen der Datei ‚%1‘ zum Schreiben schlug fehl."
 
-#: ../kcollectd/gui.cc:267
+#: ../kcollectd/gui.cc:296
 msgid "reading file ‘%1’ failed."
 msgstr "Lesen der Datei ‚%1‘ fehlgeschlagen."
 
-#: ../kcollectd/gui.cc:128
+#: ../kcollectd/gui.cc:139
 msgid "reduces magnification"
 msgstr "verringert die Vergrößerung"
 
@@ -138,11 +162,10 @@ msgstr "verringert die Vergrößerung"
 msgid "remove "
 msgstr "Entferne "
 
-#: ../kcollectd/gui.cc:132
+#: ../kcollectd/gui.cc:143
 msgid "toggle automatic update-and-follow mode."
 msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 
 #: ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr "Woche %V"
-
