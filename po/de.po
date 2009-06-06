@@ -6,14 +6,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-06 13:09+0200\n"
-"PO-Revision-Date: 2009-06-06 13:12+0200\n"
+"POT-Creation-Date: 2009-06-06 21:35+0200\n"
+"PO-Revision-Date: 2009-06-06 21:35+0200\n"
 "Last-Translator: M G Berberich <berberic@fmi.uni-passau.de>\n"
-"Language-Team:  <en@li.org>\n"
+"Language-Team: German <kde-i18n-de@kde.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: KBabel 1.11.4\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #: ../kcollectd/graph.cc:228 ../kcollectd/graph.cc:258
 msgid "%A %Y-%m-%d"
@@ -58,6 +59,10 @@ msgstr ""
 "dar und kann nicht mehr verschoben werden.<br />Dadurch wird kcollectd zu "
 "einer Art Statusmonitor.</p>"
 
+#: ../kcollectd/kcollectd.cc:135
+msgid "A kcollectd-file to open"
+msgstr "Eine kcollectd-Datei zum Öffen"
+
 #: ../kcollectd/gui.cc:73
 msgid "Add New Subgraph"
 msgstr "Erzeuge neuen Untergraphen"
@@ -70,7 +75,7 @@ msgstr "automatisches Update"
 msgid "Drop sensors from list here"
 msgstr "Ziehen Sie Sensoren aus der Liste hierher"
 
-#: ../kcollectd/kcollectd.cc:134
+#: ../kcollectd/kcollectd.cc:146
 msgid ""
 "Failed to read collectd-structure at '%1'\n"
 "Terminating."
@@ -81,6 +86,10 @@ msgstr ""
 #: ../kcollectd/gui.cc:101
 msgid "Hide Datasource Tree"
 msgstr "Blende Datenquellenbaum aus"
+
+#: ../kcollectd/kcollectd.cc:120
+msgid "KCollectd"
+msgstr "KCollectd "
 
 #: ../kcollectd/gui.cc:70
 msgid "Last Day"
@@ -98,13 +107,35 @@ msgstr "Letzter Monat"
 msgid "Last Week"
 msgstr "Letzte Woche"
 
+#: ../kcollectd/kcollectd.cc:127
+msgid "M G Berberich"
+msgstr "M G Berberich"
+
+#: ../kcollectd/kcollectd.cc:124
+msgid "Maintainer and developer"
+msgstr ""
+
 #: ../kcollectd/gui.cc:114
 msgid "Sensordata"
 msgstr "Sensordaten"
 
-#: ../kcollectd/gui.cc:297 ../kcollectd/gui.cc:332
+#: ../kcollectd/gui.cc:296 ../kcollectd/gui.cc:331
 msgid "System message is: ‘%1’"
 msgstr "Systemnachricht lautet: ‚%1‘"
+
+#: ../kcollectd/kcollectd.cc:121
+msgid "Viewer for Collectd-databases"
+msgstr "Betrachter für collectd Datensammlungen"
+
+#: ../kcollectd/kcollectd.cc:131
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "berberic@fmi.uni-passau.de"
+
+#: ../kcollectd/kcollectd.cc:130
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "M G Berberich"
 
 #: ../kcollectd/graph.cc:761
 msgid "add new subgraph"
@@ -114,7 +145,7 @@ msgstr "Erzeuge neuen Untergraphen"
 msgid "delete this subgraph"
 msgstr "Entferne diesen Untergraphen"
 
-#: ../kcollectd/gui.cc:261
+#: ../kcollectd/gui.cc:260
 msgid ""
 "file ‘%1’ allready exists.\n"
 "Do you want to overwrite it?"
@@ -146,11 +177,11 @@ msgstr "Letzter Monat"
 msgid "last week"
 msgstr "Letzte Woche"
 
-#: ../kcollectd/gui.cc:331
+#: ../kcollectd/gui.cc:330
 msgid "opening the file ‘%1’ for writing failed."
 msgstr "Das Öffnen der Datei ‚%1‘ zum Schreiben schlug fehl."
 
-#: ../kcollectd/gui.cc:296
+#: ../kcollectd/gui.cc:295
 msgid "reading file ‘%1’ failed."
 msgstr "Lesen der Datei ‚%1‘ fehlgeschlagen."
 
@@ -169,3 +200,15 @@ msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 #: ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr "Woche %V"
+
+#: ../kcollectd/kcollectd.cc:123
+msgid "© 2008, 2009 M G Berberich"
+msgstr "© 2008, 2009 M G Berberich"
+
+#~ msgctxt "Your emails"
+#~ msgid "EMAIL OF TRANSLATORS"
+#~ msgstr "berberic@fmi.uni-passau.de"
+
+#~ msgctxt "Your names"
+#~ msgid "NAME OF TRANSLATORS"
+#~ msgstr "M G Berberich"

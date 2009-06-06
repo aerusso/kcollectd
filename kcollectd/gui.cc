@@ -30,7 +30,7 @@
 #include <QXmlStreamWriter>
 
 #include <kactioncollection.h>
-#include <kmessagebox.h> 
+#include <kmessagebox.h>
 #include <KPushButton>
 #include <KIconLoader>
 #include <KGlobal>
@@ -190,11 +190,10 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addAction(actionCollection()->action("lastMonth"));
   viewMenu->addSeparator();
   viewMenu->addAction(actionCollection()->action("autoUpdate"));
+  viewMenu->addSeparator();
   viewMenu->addAction(actionCollection()->action("hideTree"));
 
-  KMenu *help_menu = helpMenu("kcollectd", true);
-  //k_ptr->helpMenu.action(MenuReportBug).hide();
-  menuBar()->addMenu(help_menu);
+  menuBar()->addMenu(helpMenu(false));
 }
 
 KCollectdGui::~KCollectdGui()

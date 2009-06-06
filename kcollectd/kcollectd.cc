@@ -29,6 +29,7 @@
 
 #include <QTreeWidgetItem>
 
+#include <KAboutData>
 #include <KCmdLineArgs>
 #include <KApplication>
 #include <KMessageBox>
@@ -115,12 +116,23 @@ int main(int argc, char **argv)
   using namespace boost::filesystem;
 
   std::vector<std::string> rrds;
-  KCmdLineArgs::init(argc, argv, "kcollectd", "",
+  KAboutData about("kcollectd", "kcollectd", 
 	ki18n("KCollectd"), VERSION, 
-	ki18n("Viewer for Collectd-databases"));
+	ki18n("Viewer for Collectd-databases"),
+ 	KAboutData::License_GPL,
+	ki18n("© 2008, 2009 M G Berberich"),
+	ki18n("Maintainer and developer"),
+	"http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd.html",
+	"berberic@fmi.uni-passau.de");
+  about.addAuthor(ki18n("M G Berberich"), KLocalizedString(),
+	"M G Berberich <berberic@fmi.uni-passau.de>", 
+	"http://www.forwiss.uni-passau.de/~berberic");
+  about.setTranslator(ki18nc("NAME OF TRANSLATORS", "Your names"),
+	ki18nc("EMAIL OF TRANSLATORS", "Your emails"));
+  KCmdLineArgs::init(argc, argv, &about);
 
   KCmdLineOptions options;
-  options.add("+[file]", ki18n("A kcolletd-file to open"));
+  options.add("+[file]", ki18n("A kcollectd-file to open"));
   KCmdLineArgs::addCmdLineOptions( options );
 
   KApplication application;
