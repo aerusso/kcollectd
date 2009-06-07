@@ -9,8 +9,7 @@ kde4_add_executable(kcollectd
   kcollectd.cc
   misc.cc
   rrd_interface.cc
-  timeaxis.cc
-  fileio.cc)
+  timeaxis.cc)
 set(rrd_LIBRARIES rrd)
 include_directories(${KDE4_INCLUDES} ${Boost_INCLUDE_DIRS})
 target_link_libraries(kcollectd 
