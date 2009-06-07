@@ -60,8 +60,10 @@ public:
 
   int top() const { return top_; }
   int bottom() const { return bottom_; }
+  int legend_lines() const { return legend_lines_; }
   void top(int t) { top_ = t; }
   void bottom(int b) { bottom_ = b; }
+  void legend_lines(int l) { legend_lines_ = l; }
 
   // iterators pointing to datasources
   typedef std::vector<datasource>::iterator iterator;
@@ -71,11 +73,13 @@ public:
   iterator end()   { return dslist.end(); }
   const_iterator begin() const { return dslist.begin(); } 
   const_iterator end() const   { return dslist.end(); }
+
   void erase(iterator i) { dslist.erase(i); }
+  bool empty() const { return dslist.empty(); }
 
 private:
   
-  int top_, bottom_;
+  int top_, bottom_, legend_lines_;
   std::vector<datasource> dslist;
 };
 
@@ -119,7 +123,8 @@ class Graph : public QFrame
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
-
+  virtual void resizeEvent(QResizeEvent*);
+  
   virtual void last(time_t span);
   virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
@@ -137,6 +142,8 @@ class Graph : public QFrame
   iterator end()   { return glist.end(); }
   const_iterator begin() const { return glist.begin(); }
   const_iterator end() const   { return glist.end(); }
+
+  bool empty() const { return glist.empty(); }
 					   
 public slots:
   virtual void removeGraph();
@@ -145,8 +152,9 @@ public slots:
  private:
   bool fetchAllData();
   void drawAll();
-  void drawLabel(QPainter &paint, int left, int right, int pos, 
-	const GraphInfo &ginfo);
+  int calcLegendHeights(int box_size, int width);
+  void drawLegend(QPainter &paint, int left, int pos, 
+	int box_size, const GraphInfo &ginfo);
   void drawFooter(QPainter &paint, int left, int right);
   void drawHeader(QPainter &paint);
   void drawYLines(QPainter &paint, const QRect &rect, 
@@ -161,6 +169,7 @@ public slots:
        time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
   void drawGraph(QPainter &paint, const QRect &rect, const GraphInfo &gi, 
 	double min, double max);
+  void layout();
   
   graph_list::iterator graphAt(const QPoint &pos);
   graph_list::const_iterator graphAt(const QPoint &pos) const;
@@ -183,7 +192,8 @@ public slots:
   // widget-data
   QFont font, header_font, small_font;
   QPixmap offscreen;
-  QRect graphrect;
+  QRect graph_rect;
+  int graph_height, label_width, box_size;
   int label_y1, label_y2;
   QColor color_major, color_minor, color_graph_bg;
   QColor color_minmax[8], color_line[8];

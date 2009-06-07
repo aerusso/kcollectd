@@ -100,7 +100,7 @@ void drawArrow(QPainter &p, const QPoint &first,  const QPoint &second)
  */
 Graph::Graph(QWidget *parent) :
   QFrame(parent), data_is_valid(false), 
-  start(time(0)-3600*24), span(3600*24), step(1), dragging(false), 
+  start(time(0)-3600*24), span(3600*24), step(1), dragging(false),
   font(KGlobalSettings::generalFont()), 
   small_font(KGlobalSettings::smallestReadableFont()),
   color_major(140, 115, 60), color_minor(80, 65, 34), 
@@ -147,10 +147,10 @@ bool Graph::fetchAllData ()
   if (data_is_valid)
     return (true);
   
-  if (glist.empty())
+  if (empty())
     return (false);
 
-  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+  for(graph_list::iterator i = begin(); i != end(); ++i) {
     for(GraphInfo::iterator j = i->begin(); j != i->end(); ++j) {
       const std::string file(j->rrd.toUtf8().data());
       const std::string ds(j->ds.toUtf8().data());    
@@ -186,30 +186,72 @@ void Graph::clear()
 {
   glist.clear();
   data_is_valid = false;
+  layout();
   update();
 }
 
-void Graph::drawLabel(QPainter &paint, int left, int right, int y, 
-      const GraphInfo &ginfo)
+int Graph::calcLegendHeights(int box_size, int width)
 {
-  const int num = ginfo.size();
   const QFontMetrics &fontmetric = fontMetrics();
-  const int box_size = fontmetric.ascent()-2;
 
-  int textlen = 0;
-  for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
-    textlen += fontmetric.width(i->label);
+  int total_legend_height = 0;
+  for(graph_list::iterator i = begin(); i != end(); ++i) {
+
+    if (i->empty()) {
+      i->legend_lines(0);
+      continue;
+    }
+
+    std::vector<int> label_width;
+    for(GraphInfo::const_iterator gi = i->begin(); gi != i->end(); ++gi)
+      label_width.push_back(fontmetric.width(gi->label) + box_size + marg);
+    
+    const int n = label_width.size();
+    int r;
+    for(r = 1; r < n; ++r) {
+      const int col = (n+r-1)/r;
+      int total_width = 0, i=0;
+      for (int j=0; j<col; ++j) {
+	int max = 0;
+	for(int k=0; k<r && i<n; ++i, ++k) {
+	  if (max < label_width[i]) 
+	    max = label_width[i];
+	}
+	total_width += max;
+      }
+      total_width += 4*marg * (col-1);
+      if (total_width <= width)
+	break;
+    }
+    i->legend_lines(r);
+    total_legend_height += r * fontmetric.lineSpacing();
   }
-  textlen += (4*num - 3) * marg + num * box_size;
-  int x = left;
-  int n = 0;
+  return total_legend_height;
+}
+
+void Graph::drawLegend(QPainter &paint, int left, int y, 
+      int box_size, const GraphInfo &ginfo)
+{
+  const QFontMetrics &fontmetric = fontMetrics();
+
+  int n = 0, cy = y, cx = left, max_width = 0;
+  int lines = ginfo.legend_lines();
   for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
-    paint.drawRect(x, y-box_size, box_size-1, box_size-1);
-    paint.fillRect(x+1, y-box_size+1, box_size-2, box_size-2, 
-	  color_line[n++ % 8]);
-    x += box_size + marg;
-    paint.drawText(x, y, i->label);
-    x += fontmetric.width(i->label) + 4*marg;
+    paint.drawRect(cx, cy-box_size, box_size-1, box_size-1);
+    paint.fillRect(cx+1, cy-box_size+1, box_size-2, box_size-2, 
+	  color_line[n % 8]);
+    paint.drawText(cx + box_size + marg, cy, i->label);
+
+    int w = box_size + marg + fontmetric.width(i->label);
+    if (w>max_width) 
+      max_width = w;
+    cy += fontmetric.lineSpacing();
+    ++n;
+    if (n % lines == 0) {
+      cx += max_width + 4*marg;
+      max_width = 0;
+      cy = y;
+    }
   }
 }
 
@@ -581,71 +623,55 @@ void Graph::drawAll()
     if (!data_is_valid)
       fetchAllData ();
 
-    // resize offscreen-map to widget-size
-    offscreen = QPixmap(contentsRect().width(), contentsRect().height());
-    
     // clear
     QPainter paint(&offscreen);
     paint.setFont(font);
     paint.eraseRect(0, 0, contentsRect().width(), contentsRect().height());
     //paint.fillRect(0, 0, contentsRect().width(), contentsRect().height(), QColor(245, 245, 245));
     
-    
     // margin calculations
     // place for labels at the left and two line labels below
     const QFontMetrics &fontmetric = paint.fontMetrics();
     const QFontMetrics smallmetric = QFontMetrics(small_font);
     const QFontMetrics headermetric = QFontMetrics(header_font);
-    const int labelwidth = fontmetric.boundingRect("888.888 M").width();
-    
-    // area for graphs (including legends)
-    graphrect.setRect(labelwidth + marg,
-	  headermetric.height() + 2*marg,
-	  contentsRect().width() - labelwidth - marg,
-	  contentsRect().height() - headermetric.height() - 2*marg);
-    
+
     time_iterator minor_x, major_x, label_x;
     QString format_x;
     bool center_x;
-    findXGrid(graphrect.width(), format_x, center_x, minor_x, major_x, label_x);
+    findXGrid(graph_rect.width(), format_x, center_x, minor_x, major_x, label_x);
     drawHeader(paint);
     
-    
-    const int graphheight = graphrect.height() / numgraphs;
     int n = 0;
-    for(graph_list::iterator i = glist.begin(); i != glist.end(); ++n, ++i) {
+    for(graph_list::iterator i = begin(); i != end(); ++n, ++i) {
+      const int top = i->top() - contentsRect().top();
+      const int bottom = i->bottom() - contentsRect().top();
+
       // y-scaling
       double base;
       Range y_range = i->minmax_adj(&base);
       if (!y_range.isValid())
 	continue;
       
-      //
-      int top = graphrect.top() + n * graphheight;
-      int bottom = top + graphheight - 2*marg - smallmetric.lineSpacing()
-	- fontmetric.height();
-      int xlabel_base = bottom + marg + smallmetric.ascent();
-      int label_base = bottom + marg + smallmetric.lineSpacing() 
-	+ fontmetric.ascent();
+      // geometry
+      const int xlabel_base = bottom + marg + smallmetric.ascent();
+      const int legend_base = top + graph_height + fontmetric.ascent();
       
       // panel area
-      QRect panelrect(graphrect.left(), top, graphrect.width(), bottom-top);
-      i->top(top + contentsRect().top());
-      i->bottom(bottom + contentsRect().top());
+      QRect panelrect(graph_rect.left(), top, graph_rect.width(), bottom-top);
       
       // graph-background
       paint.fillRect(panelrect, color_graph_bg);
       
       // draw minor, major, graph
-      drawXLabel(paint, xlabel_base, graphrect.left(), graphrect.right(), 
+      drawXLabel(paint, xlabel_base, graph_rect.left(), graph_rect.right(), 
 	    label_x, format_x, center_x);
-      drawLabel(paint, 2*marg, graphrect.right(), label_base, *i);
       drawXLines(paint, panelrect, minor_x, color_minor);
       drawYLines(paint, panelrect, y_range, base/10, color_minor);
       drawXLines(paint, panelrect, major_x, color_major);
       drawYLines(paint, panelrect, y_range, base, color_major);
       drawYLabel(paint, panelrect, y_range, base);
       drawGraph(paint, panelrect, *i, y_range.min(), y_range.max());
+      drawLegend(paint, marg, legend_base, box_size, *i);
     }
     paint.end();
     // copy to screen
@@ -660,6 +686,45 @@ void Graph::drawAll()
   }
 }
 
+void Graph::layout() 
+{
+  const int numgraphs =  glist.size();
+  if (!numgraphs) return;
+
+  // resize offscreen-map to widget-size
+  offscreen = QPixmap(contentsRect().width(), contentsRect().height());
+
+  QPainter paint(&offscreen);
+  paint.setFont(font);
+
+  // margin calculations
+  // place for labels at the left and two line labels below
+  const QFontMetrics fontmetric = QFontMetrics(font);
+  const QFontMetrics smallmetric = QFontMetrics(small_font);
+  const QFontMetrics headermetric = QFontMetrics(header_font);
+
+  const int labelwidth = fontmetric.boundingRect("888.888 M").width();
+  box_size = fontmetric.ascent()-2;
+
+  // area for graphs (including legends)
+  graph_rect.setRect(labelwidth + marg, headermetric.height() + 2*marg,
+	offscreen.width() - labelwidth - marg,
+	offscreen.height() - headermetric.height() - 2*marg);
+    
+  const int total_legend_height = 
+    calcLegendHeights(box_size, offscreen.width() - 2*marg);
+  graph_height = (graph_rect.height() - total_legend_height 
+	- marg*(2*numgraphs-1)) / numgraphs;
+
+  int top = graph_rect.top();
+  for(graph_list::iterator i = begin(); i != end(); ++i) {
+    int bottom = top + graph_height - marg - smallmetric.lineSpacing();
+    i->top(top + contentsRect().top());
+    i->bottom(bottom + contentsRect().top());
+    top += graph_height + i->legend_lines()*fontmetric.lineSpacing() + 2*marg; 
+  }
+}
+
 /**
  * Qt (re)paint event
  */
@@ -669,22 +734,27 @@ void Graph::paintEvent(QPaintEvent *e)
   drawAll();
 }
 
+void Graph::resizeEvent(QResizeEvent *e) 
+{
+  layout();
+}
+
 Graph::graph_list::iterator Graph::graphAt(const QPoint &pos)
 {
-  for(graph_list::iterator i = glist.begin(); i != glist.end(); ++i) {
+  for(graph_list::iterator i = begin(); i != end(); ++i) {
     if (i->top() < pos.y() && i->bottom() > pos.y())
       return i;
   }
-  return glist.end();
+  return end();
 }
 
 Graph::graph_list::const_iterator Graph::graphAt(const QPoint &pos) const
 {
-  for(graph_list::const_iterator i = glist.begin(); i != glist.end(); ++i) {
+  for(graph_list::const_iterator i = begin(); i != end(); ++i) {
     if (i->top() < pos.y() && i->bottom() > pos.y())
       return i;
   }
-  return glist.end();
+  return end();
 }
 
 /**
@@ -719,9 +789,10 @@ void Graph::removeGraph()
   if (!numgraphs) return;
 
   graph_list::iterator target = graphAt(QPoint(0, origin_y));
-  if (target != glist.end()) {
+  if (target != end()) {
     glist.erase(target);
-  } 
+  }
+  layout();
   update();
 }
 
@@ -731,6 +802,7 @@ void Graph::removeGraph()
 void Graph::splitGraph()
 {
   add();
+  layout();
   update();
 }
 
@@ -760,7 +832,7 @@ void Graph::mousePressEvent(QMouseEvent *e)
     menu.addAction(KIcon("list-add"), 
 	  i18n("add new subgraph"), this, SLOT(splitGraph()));
 
-    if (s_graph != glist.end()) {
+    if (s_graph != end()) {
       menu.addAction(KIcon("edit-delete"),
 	    i18n("delete this subgraph"), this, SLOT(removeGraph()));
       menu.addSeparator();
@@ -778,6 +850,7 @@ void Graph::mousePressEvent(QMouseEvent *e)
     actionmap::iterator result = acts.find(action);
     if (result != acts.end()) {
       s_graph->erase(result->second);
+      layout();
       update();
     }
   }
@@ -801,13 +874,13 @@ void Graph::mouseMoveEvent(QMouseEvent *e)
     int x = e->x();
     int y = e->y();
     
-    if ((x < graphrect.left()) || (x >= graphrect.right()))
+    if ((x < graph_rect.left()) || (x >= graph_rect.right()))
       return;
     if ((y < 0) || (y >= height()))
       return;
     
     int offset = (x - origin_x) * (origin_end - origin_start) 
-      / graphrect.width();
+      / graph_rect.width();
     
     start = origin_start - offset;
     const time_t now = time(0);
@@ -877,7 +950,7 @@ void Graph::dragMoveEvent(QDragMoveEvent *event)
     event->accept(contentsRect());
   } else {
     graph_list::iterator i  = graphAt(event->pos());
-    if(i != glist.end()) {
+    if(i != end()) {
       QRect g;
       g.setCoords(contentsRect().left(), i->top(), 
 	    contentsRect().right(), i->bottom());
@@ -901,7 +974,7 @@ void Graph::dropEvent(QDropEvent *event)
   const int numgraphs =  glist.size();
   if (numgraphs) {
     graph_list::iterator target = graphAt(event->pos());
-    if (target != glist.end()) {
+    if (target != end()) {
       target->add(mimeData->rrd(), mimeData->ds(), mimeData->label());
     } else {
       add(mimeData->rrd(), mimeData->ds(), mimeData->label());
@@ -910,6 +983,7 @@ void Graph::dropEvent(QDropEvent *event)
     add(mimeData->rrd(), mimeData->ds(), mimeData->label());
   }
   data_is_valid = false;
+  layout();
   update();
 }
 
