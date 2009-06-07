@@ -236,21 +236,23 @@ void Graph::drawLegend(QPainter &paint, int left, int y,
 
   int n = 0, cy = y, cx = left, max_width = 0;
   int lines = ginfo.legend_lines();
-  for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
-    paint.drawRect(cx, cy-box_size, box_size-1, box_size-1);
-    paint.fillRect(cx+1, cy-box_size+1, box_size-2, box_size-2, 
-	  color_line[n % 8]);
-    paint.drawText(cx + box_size + marg, cy, i->label);
-
-    int w = box_size + marg + fontmetric.width(i->label);
-    if (w>max_width) 
-      max_width = w;
-    cy += fontmetric.lineSpacing();
-    ++n;
-    if (n % lines == 0) {
-      cx += max_width + 4*marg;
-      max_width = 0;
-      cy = y;
+  if (lines) {
+    for(GraphInfo::const_iterator i = ginfo.begin(); i != ginfo.end(); ++i) {
+      paint.drawRect(cx, cy-box_size, box_size-1, box_size-1);
+      paint.fillRect(cx+1, cy-box_size+1, box_size-2, box_size-2, 
+	    color_line[n % 8]);
+      paint.drawText(cx + box_size + marg, cy, i->label);
+      
+      int w = box_size + marg + fontmetric.width(i->label);
+      if (w>max_width) 
+	max_width = w;
+      cy += fontmetric.lineSpacing();
+      ++n;
+      if (n % lines == 0) {
+	cx += max_width + 4*marg;
+	max_width = 0;
+	cy = y;
+      }
     }
   }
 }

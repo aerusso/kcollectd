@@ -217,19 +217,6 @@ GraphInfo::add(const QString &rrd, const QString &ds, const QString &label)
 }
 
 /**
- * 
- */
-inline GraphInfo &
-Graph::add(const QString &rrd, const QString &ds, const QString &label)
-{
-  GraphInfo gi;
-  gi.add(rrd, ds, label);
-  glist.push_back(gi);
-  data_is_valid = false;
-  return glist.back();
-}
-
-/**
  * set graph-infos.
  */
 inline void 
@@ -240,10 +227,27 @@ GraphMimeData::setGraph(const QString &r, const QString &d, const QString &l)
   label_ = l;
 }
 
+/**
+ * 
+ */
+inline GraphInfo &
+Graph::add(const QString &rrd, const QString &ds, const QString &label)
+{
+  GraphInfo gi;
+  gi.add(rrd, ds, label);
+  glist.push_back(gi);
+  data_is_valid = false;
+  layout();
+  update();
+  return glist.back();
+}
+
 inline GraphInfo &Graph::add() 
 { 
   GraphInfo gi; 
-  glist.push_back(gi); 
+  glist.push_back(gi);
+  layout();
+  update();
   return glist.back();
 }
 
