@@ -1,8 +1,4 @@
-/*
- * (C) 2008 M G Berberich
- *
- */
-
+/* -*- c++ -*- */
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd

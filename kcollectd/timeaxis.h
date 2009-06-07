@@ -1,3 +1,4 @@
+/* -*- c++ -*- */
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
