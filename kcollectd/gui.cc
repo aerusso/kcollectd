@@ -193,7 +193,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addSeparator();
   viewMenu->addAction(actionCollection()->action("hideTree"));
 
-  menuBar()->addMenu(helpMenu(false));
+  menuBar()->addMenu(helpMenu());
 }
 
 KCollectdGui::~KCollectdGui()
