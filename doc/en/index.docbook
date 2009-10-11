@@ -119,7 +119,7 @@ can not be scrolled any more.
 </para>
 </chapter>
 
-<chapter id="credits">
+<chapter id="seealso">
 <title>See also</title>
 <para>
 <command><ulink url='man:collectd'>collectd</ulink></command>(1)
