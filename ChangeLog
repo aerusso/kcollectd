@@ -1,3 +1,36 @@
+2009-10-11:
+	Version 0.8.1
+	added a manual to make the help-menu-entry work.
+
+2009-06-06:
+	Version 0.8
+	added drag-n-drop Pixmap
+	make datasource-tree hideable
+	multiline legends
+
+2009-06-01:
+	read argument from commandline to load file
+	load/save config in xml-file
+
+2009-05-31:
+	added Menus
+	main window now is a KMainWindow
+
+2009-05-26:
+	Version 0.7
+	context-menu
+	changed functionality of gui.
+		now datasources has to be dragged to graph-widget
+
+2009-05-10:
+	widgets allows multigraphs
+
+2009-05-03:
+	Version: 0.6
+	added auto-update-and-follow-mode to manpage
+	changed from reading command-output of “rrdtool info”
+		to using the (new) function in rrd API
+
 2009-04-19:
 	Ported to KDE4
 	single leave-entries are no longer shown in tree
@@ -9,7 +42,7 @@
 2009-01-08:
 	Version 0.3
 	fixed bug reported by Daniel Clark (this was a security problem)
-	
+
 2008-08-01:
 	removed dependency on kglobalsettings.h from graph-widget
 	most of minmax → misc.cc
