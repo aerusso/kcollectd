@@ -1,3 +1,7 @@
+2009-11-30:
+	Version 0.8.2
+	make it compile with binutils-gold (see debian Bug#554939)
+
 2009-10-11:
 	Version 0.8.1
 	added a manual to make the help-menu-entry work.

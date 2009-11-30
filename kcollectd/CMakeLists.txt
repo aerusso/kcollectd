@@ -1,7 +1,7 @@
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAG} ${KDE4_ENABLE_EXCEPTIONS}")
 
-find_package(Boost COMPONENTS filesystem)
+find_package(Boost COMPONENTS filesystem system)
 
 kde4_add_executable(kcollectd 
   graph.cc
