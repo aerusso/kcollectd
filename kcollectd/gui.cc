@@ -19,6 +19,10 @@
  */
 
 #include <iostream>
+#include <set>
+#include <sstream>
+
+#include <boost/filesystem.hpp>
 
 #include <QLayout>
 #include <QLabel>
@@ -43,11 +47,17 @@
 #include <KToggleAction>
 #include <KFileDialog>
 #include <KHelpMenu>
+#include <KStandardDirs>
 
+#include "rrd_interface.h"
 #include "graph.h"
 #include "gui.moc"
 
 #include "drag_pixmap.xpm"
+
+#ifndef RRD_BASEDIR
+# define RRD_BASEDIR "/var/lib/collectd/rrd"
+#endif
 
 static struct {
   KStandardAction::StandardAction actionType;
@@ -72,6 +82,74 @@ static struct {
   { I18N_NOOP("Last Month"),       "lastMonth",  SLOT(last_month()) },
   { I18N_NOOP("Add New Subgraph"), "splitGraph", SLOT(splitGraph()) },
 };
+
+static const std::string delimiter("•");
+
+static void get_datasources(const std::string &rrdfile, const std::string &info,
+      QTreeWidgetItem *item)
+{
+  std::set<std::string> datasources;
+  get_dsinfo(rrdfile, datasources);
+ 
+  if (datasources.size() == 1) {
+    item->setFlags(item->flags() | Qt::ItemIsSelectable); 
+    item->setText(1, QString::fromUtf8(info.c_str()));
+    item->setText(2, QString::fromUtf8(rrdfile.c_str()));
+    item->setText(3, QString::fromUtf8((*datasources.begin()).c_str()));
+  } else { 
+    for(std::set<std::string>::iterator i=datasources.begin();
+	i != datasources.end(); ++i){
+      QStringList SL(i->c_str());
+      SL.append(QString::fromUtf8((info + delimiter + *i).c_str()));
+      SL.append(QString::fromUtf8(rrdfile.c_str()));
+      SL.append(QString::fromUtf8(i->c_str()));
+      QTreeWidgetItem *dsitem = new QTreeWidgetItem(item, SL);
+      item->setFlags(dsitem->flags() & ~Qt::ItemIsSelectable);
+   }
+  }
+}
+
+static QTreeWidgetItem *mkItem(QTreeWidget *listview, std::string s)
+{
+  return new QTreeWidgetItem(listview, QStringList(QString(s.c_str())));
+}
+
+static QTreeWidgetItem *mkItem(QTreeWidgetItem *item, std::string s)
+{
+  return new QTreeWidgetItem(item, QStringList(QString(s.c_str())));
+}
+
+static void get_rrds(const boost::filesystem::path rrdpath, 
+      QTreeWidget *listview)
+{
+  using namespace boost::filesystem;
+  
+  const directory_iterator end_itr;
+  for (directory_iterator host(rrdpath); host != end_itr; ++host ) {
+    if (is_directory(*host)) {
+      QTreeWidgetItem *hostitem = mkItem(listview, host->leaf());
+      hostitem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
+      for (directory_iterator sensor(*host); sensor != end_itr; ++sensor ) {
+	if (is_directory(*sensor)) {
+	  QTreeWidgetItem *sensoritem = mkItem(hostitem, sensor->leaf());
+	  sensoritem->setFlags(sensoritem->flags() & ~Qt::ItemIsSelectable);
+	  for (directory_iterator rrd(*sensor); rrd != end_itr; ++rrd ) {
+	    if (is_regular(*rrd) && extension(*rrd) == ".rrd") {
+	      QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
+	      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
+	      std::ostringstream info;
+	      info << host->leaf() << delimiter
+		   << sensor->leaf() << delimiter
+		   << basename(*rrd);
+	      get_datasources(rrd->string(), info.str(), rrditem);
+	    }
+	  }
+	}
+      }
+    }
+  }
+  listview->sortItems(0, Qt::AscendingOrder);
+}
 
 /** 
  * Constructs a KCollectdGui
@@ -98,7 +176,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   actionCollection()->addAction("autoUpdate", auto_action);
   connect(auto_action, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 
-  KAction *panel_action = new KAction(i18n("Hide Datasource Tree"), this);
+  panel_action = new KAction(i18n("Hide Datasource Tree"), this);
   panel_action->setCheckable(true);
   panel_action->setShortcut(KShortcut("f9"));
   actionCollection()->addAction("hideTree", panel_action);
@@ -194,6 +272,9 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addAction(actionCollection()->action("hideTree"));
 
   menuBar()->addMenu(helpMenu());
+
+  // build rrd-tree
+  get_rrds(RRD_BASEDIR, listview());
 }
 
 KCollectdGui::~KCollectdGui()
@@ -241,35 +322,35 @@ void KCollectdGui::hideTree(bool t)
 
 void KCollectdGui::load()
 {
-  QString filename = KFileDialog::getOpenFileName(KUrl(), 
+  QString file = KFileDialog::getOpenFileName(KUrl(), 
 	"application/x-kcollectd", this);
-  if (filename.isEmpty()) return;
+  if (file.isEmpty()) return;
 
-  load(filename);
+  load(file);
 }
 
 void KCollectdGui::save()
 {
-  QString filename = KFileDialog::getSaveFileName(KUrl(), 
+  QString file = KFileDialog::getSaveFileName(KUrl(), 
 	"application/x-kcollectd", this);
-  if (filename.isEmpty()) return;
+  if (file.isEmpty()) return;
 
-  QFile out(filename);
+  QFile out(file);
   if (out.exists()) {
     int answer = KMessageBox::questionYesNo(this, 
 	  i18n("file ‘%1’ allready exists.\n"
-		"Do you want to overwrite it?", filename));
+		"Do you want to overwrite it?", file));
     if (answer != KMessageBox::Yes) {
       return;
     }
   }
   out.close();
-  save(filename);
+  save(file);
 }
 
-void KCollectdGui::load(const QString &filename)
+void KCollectdGui::load(const QString &file)
 {
-  QFile in(filename);
+  QFile in(file);
   if (in.open(QIODevice::ReadOnly)) {
     QDomDocument doc;
     doc.setContent(&in);
@@ -290,6 +371,8 @@ void KCollectdGui::load(const QString &filename)
       }
       t = t.nextSiblingElement();
     }
+    filename = file;
+    graph->changed(false);
   } else {
     KMessageBox::detailedSorry(this, 
 	  i18n("reading file ‘%1’ failed.", filename), 
@@ -297,9 +380,9 @@ void KCollectdGui::load(const QString &filename)
   }
 }
 
-void KCollectdGui::save(const QString &filename)
+void KCollectdGui::save(const QString &file)
 {
-  QFile out(filename);
+  QFile out(file);
   if (out.open(QIODevice::WriteOnly)) {
     QXmlStreamWriter stream(&out);
     stream.setAutoFormatting(true);
@@ -324,10 +407,51 @@ void KCollectdGui::save(const QString &filename)
     stream.writeEndElement();
     
     stream.writeEndDocument();
-    out.close();
+    filename = file;
+    graph->changed(false);
   } else {
     KMessageBox::detailedSorry(this, 
 	  i18n("opening the file ‘%1’ for writing failed.", filename), 
 	  i18n("System message is: ‘%1’", out.errorString()));
   }
+}
+
+void KCollectdGui::saveProperties(KConfigGroup &conf)
+{
+  conf.writeEntry("hide-navigation", listview_->isHidden());
+  conf.writeEntry("auto-update", graph->autoUpdate());
+  conf.writeEntry("range", static_cast<int>(graph->range()));
+  if (!graph->changed() && !filename.isEmpty()) {
+    conf.writeEntry("filename", QDir().absoluteFilePath(filename));
+    conf.writeEntry("file-is-session", false);
+  } else {
+    char hostname[100];
+    gethostname(hostname, sizeof(hostname));
+    QString file = QString("%1session-%2-%3")
+      .arg(KGlobal::dirs()->saveLocation("appdata"))
+      .arg(hostname)
+      .arg(getpid());
+    save(file);
+    conf.writeEntry("filename", file);
+    conf.writeEntry("file-is-session", true);
+  }
+}
+
+void KCollectdGui::readProperties(const KConfigGroup &conf)
+{
+  bool nav = conf.readEntry("hide-navigation", false);
+  bool aut = conf.readEntry("auto-update", false);
+  time_t range = conf.readEntry("range", 24*3600);
+  QString file = conf.readEntry("filename", QString());
+  bool file_is_session = conf.readEntry("file-is-session", false);
+  if (!file.isEmpty()) {
+    load(file);
+    if (file_is_session)
+      QFile::remove(file);
+    else
+      filename = file;
+  }
+  panel_action->setChecked(nav);
+  autoUpdate(aut);
+  graph->last(range);
 }

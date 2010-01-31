@@ -793,6 +793,7 @@ void Graph::removeGraph()
   graph_list::iterator target = graphAt(QPoint(0, origin_y));
   if (target != end()) {
     glist.erase(target);
+    changed(true);
   }
   layout();
   update();
@@ -856,10 +857,6 @@ void Graph::mousePressEvent(QMouseEvent *e)
       update();
     }
   }
-}
-
-void Graph::mouseDoubleClickEvent(QMouseEvent *)
-{
 }
 
 /**

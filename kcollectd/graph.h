@@ -115,7 +115,11 @@ class Graph : public QFrame
   GraphInfo &add(const QString &rrd, const QString &ds, const QString &label);
   GraphInfo &add();
 
+  bool changed() { return changed_state; }
+  void changed(bool c) { changed_state = c; }
+
   void autoUpdate(bool active);
+  bool autoUpdate() { return (autoUpdateTimer != -1); }
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
@@ -124,7 +128,6 @@ class Graph : public QFrame
   virtual void last(time_t span);
   virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
-  virtual void mouseDoubleClickEvent(QMouseEvent *e);
   virtual void mouseMoveEvent(QMouseEvent *e);
   virtual void wheelEvent(QWheelEvent *e);
   virtual void timerEvent(QTimerEvent *event);
@@ -140,7 +143,8 @@ class Graph : public QFrame
   const_iterator end() const   { return glist.end(); }
 
   bool empty() const { return glist.empty(); }
-					   
+  time_t range() { return span; }
+
 public slots:
   virtual void removeGraph();
   virtual void splitGraph();
@@ -197,6 +201,9 @@ public slots:
   // Auto-Update
   int autoUpdateTimer;
   time_t timer_diff;
+
+  // state
+  bool changed_state;
 };
 
 /**
@@ -229,19 +236,17 @@ GraphMimeData::setGraph(const QString &r, const QString &d, const QString &l)
 inline GraphInfo &
 Graph::add(const QString &rrd, const QString &ds, const QString &label)
 {
-  GraphInfo gi;
+  GraphInfo &gi = add();
   gi.add(rrd, ds, label);
-  glist.push_back(gi);
   data_is_valid = false;
-  layout();
-  update();
-  return glist.back();
+  return gi;
 }
 
 inline GraphInfo &Graph::add() 
 { 
   GraphInfo gi; 
   glist.push_back(gi);
+  changed(true);
   layout();
   update();
   return glist.back();

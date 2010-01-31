@@ -30,17 +30,6 @@
 #include <vector>
 #include <set>
 
-//#include <klocale.h>
-
-class bad_rrdinfo : public std::exception
-{
-public:
-  virtual const char* what() const throw()
-  {
-    return "calling rrdinfo failed.";
-  }
-};
-
 void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list);
 
 void get_rrd_data (const std::string &file, const std::string &ds, 

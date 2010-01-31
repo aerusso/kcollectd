@@ -62,15 +62,19 @@ public slots:
   virtual void load();
   virtual void save();
 
+protected:
+  virtual void saveProperties(KConfigGroup &);
+  virtual void readProperties(const KConfigGroup &);
+
 private:
   QTreeWidget *listview_;
   QVBoxLayout *vbox;
   Graph * graph;
   KPushButton *auto_button;
-  KAction *auto_action;
+  KAction *auto_action, *panel_action;
+  QString filename;
 
   KActionCollection action_collection;
-  
 };
 
 inline void KCollectdGui::last_month()
