@@ -119,7 +119,7 @@ Range ds_minmax(const std::vector<double> &avg_data,
   // process avg_data
   if (!avg_data.empty()) {
     for(std::size_t i=0; i<size; ++i) {
-      if (isnan(avg_data[i])) continue;
+      if (std::isnan(avg_data[i])) continue;
       valid = true;
       if (min > avg_data[i]) min = avg_data[i];
       if (max < avg_data[i]) max = avg_data[i];
@@ -129,7 +129,7 @@ Range ds_minmax(const std::vector<double> &avg_data,
   // process min/max-data
   if (!min_data.empty() && !max_data.empty()) {  
     for(std::size_t i=0; i<size; ++i) {
-      if (isnan(min_data[i]) || isnan(max_data[i])) continue;
+      if (std::isnan(min_data[i]) || std::isnan(max_data[i])) continue;
       valid = true;
       if (min > min_data[i]) min = min_data[i];
       if (max < min_data[i]) max = min_data[i];

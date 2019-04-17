@@ -564,9 +564,9 @@ void Graph::drawGraph(QPainter &paint, const QRect &rect,
       paint.setPen(Qt::NoPen);
       paint.setBrush(QBrush(color_minmax[color_nr++ % 8]));
       for(int i=0; i<size; ++i) {
-	while (i<size && (isnan(min_data[i]) || isnan(max_data[i]))) ++i;
+	while (i<size && (std::isnan(min_data[i]) || std::isnan(max_data[i]))) ++i;
 	int l = i;
-	while (i<size && !isnan(min_data[i]) && !isnan(max_data[i])) ++i;
+	while (i<size && !std::isnan(min_data[i]) && !std::isnan(max_data[i])) ++i;
 	const int asize = i-l;
 	points.resize(asize*2);
 	int k;
@@ -597,9 +597,9 @@ void Graph::drawGraph(QPainter &paint, const QRect &rect,
     if (!avg_data.empty()) {
       paint.setPen(color_line[color_nr++ % 8]);
       for(int i=0; i<size; ++i) {
-	while (i<size && isnan(avg_data[i])) ++i;
+	while (i<size && std::isnan(avg_data[i])) ++i;
 	int l = i;
-	while (i<size && !isnan(avg_data[i])) ++i;
+	while (i<size && !std::isnan(avg_data[i])) ++i;
 	const int asize = i-l;
 	points.resize(asize);
 	for(int k=0; k<asize; ++k, ++l) {
