@@ -1,0 +1,2 @@
+version=3
+http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd/kcollectd-(.*)\.tar\.(?:bz2|gz)

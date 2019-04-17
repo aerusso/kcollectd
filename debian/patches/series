@@ -1,0 +1,4 @@
+po-lang.patch
+boost1.46.patch
+docbook-4.2.patch
+fix-ftbfs-gcc6.patch

@@ -1,0 +1,143 @@
+kcollectd (0.9-5) unstable; urgency=medium
+
+  * QA upload.
+  * Switch transitional khelpcenter4 suggest to khelpcenter. (Closes: #886537)
+
+ -- Pino Toscano <pino@debian.org>  Mon, 16 Apr 2018 08:29:00 +0200
+
+kcollectd (0.9-4) unstable; urgency=medium
+
+  * QA upload.
+  * Add Build-Depends: collectd to only build kcollectd for architectures where
+    it is installable, thanks to Adrian Bunk.  (Closes: #845689)
+
+ -- Andreas Beckmann <anbe@debian.org>  Sat, 10 Dec 2016 13:23:23 +0100
+
+kcollectd (0.9-3) unstable; urgency=medium
+
+  [ Mattia Rizzolo ]
+  * QA upload.
+  * Orphan the package.  See #840320
+  * Add Vcs-* fields pointing to repository on collab-maint
+  * Use source format 3.0 (quilt)
+  * Convert patches into quilt patches.
+  * Run wrap-and-sort -ast.
+  * convert d/rules to use the dh sequencer.
+  * Bump debhelper compat level to 10.
+  * Bump Standards-Version to 3.9.8, no changes needed.
+
+  [ Justin B Rye ]
+  * Rewrite description.  Closes: #620022, #687354
+
+  [ Logan Rosen ]
+  * Add patch to fix FTBFS with gcc 6.  Closes: #831129
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 10 Oct 2016 15:36:41 +0000
+
+kcollectd (0.9-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * kcollectd/gui.cc, kcollectd/kcollectd.cc:
+    - Port to new boost1.46 filesystem API (Closes: #624931)
+  * doc/en/index.docbook:
+    - Bump doctype version to 4.2 to avoid FTBFS.
+  * debian/control:
+    - Promote collectd to Depends (Closes: #620023).
+
+ -- Luca Falavigna <dktrkranz@debian.org>  Thu, 25 Aug 2011 00:30:43 +0200
+
+kcollectd (0.9-2) unstable; urgency=low
+
+  * Added build-dependencies on shared-mime-info, since this 
+    dependency has been removed from kdelibs5.
+    (Closes: #581322, #582557).
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Fri, 21 May 2010 22:20:56 +0200
+
+kcollectd (0.9-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Sun, 07 Feb 2010 20:03:42 +0100
+
+kcollectd (0.8.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fixed build failure when using binutils-gold (Closes: #554939).
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Mon, 30 Nov 2009 22:06:55 +0100
+
+kcollectd (0.8.1-1) unstable; urgency=low
+
+  * Initial Debian upload (Closes: #533080).
+  * New upstream release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Sun, 11 Oct 2009 17:27:45 +0200
+
+kcollectd (0.8-1) unstable; urgency=low
+
+  * Changed description and packaging-licence.
+  * New upstream release.
+  
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Sun, 07 Jun 2009 18:52:24 +0200
+
+kcollectd (0.6-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Wed, 06 May 2009 21:54:24 +0200
+
+kcollectd (0.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Tue, 28 Apr 2009 23:16:51 +0200
+
+kcollectd (0.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Sun, 19 Apr 2009 13:49:28 +0200
+
+kcollectd (0.3-5) unstable; urgency=low
+
+  * Dependencies corrected.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Mon, 23 Mar 2009 19:22:55 +0100
+
+kcollectd (0.3-4) unstable; urgency=low
+
+  * Changed the find-qt3-moc method to configure option.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Fri, 20 Feb 2009 22:34:04 +0100
+
+kcollectd (0.3-3) unstable; urgency=low
+
+  * Fixed mysterious qobject-problem - hopefully.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Fri, 20 Feb 2009 10:11:37 +0100
+
+kcollectd (0.3-2) unstable; urgency=low
+
+  * Fixed moc-path problem.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Mon, 09 Feb 2009 21:35:53 +0100
+
+kcollectd (0.3-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Sun, 11 Jan 2009 14:02:40 +0100
+
+kcollectd (0.2-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Thu, 31 Jul 2008 20:46:00 +0200
+
+kcollectd (0.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- M G Berberich <berberic@fmi.uni-passau.de>  Thu, 10 Jul 2008 21:52:18 +0200
+

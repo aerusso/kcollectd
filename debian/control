@@ -1,0 +1,30 @@
+Source: kcollectd
+Section: utils
+Priority: extra
+Maintainer: Debian QA Group <packages@qa.debian.org>
+Build-Depends:
+ cmake,
+ debhelper (>= 10),
+ kdelibs5-dev,
+ libboost-filesystem-dev,
+ librrd-dev,
+ shared-mime-info,
+ collectd,
+Standards-Version: 3.9.8
+Homepage: http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd.html
+Vcs-Git: https://anonscm.debian.org/git/collab-maint/kcollectd.git
+Vcs-Browser: https://anonscm.debian.org/git/collab-maint/kcollectd.git
+
+Package: kcollectd
+Architecture: any
+Depends:
+ collectd,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Suggests:
+ khelpcenter,
+Description: simple collectd graphing front-end for KDE
+ This package provides a basic KDE application for viewing RRD files
+ created by collectd, the system statistics storage daemon. It allows
+ easy mouse-driven navigation through data collections and can be used
+ as a virtual chart recorder.
