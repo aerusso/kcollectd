@@ -5,7 +5,7 @@ Maintainer: Debian QA Group <packages@qa.debian.org>
 Build-Depends:
  cmake,
  debhelper (>= 10),
- kdelibs5-dev,
+ qtbase5-dev,
  libboost-filesystem-dev,
  librrd-dev,
  shared-mime-info,
