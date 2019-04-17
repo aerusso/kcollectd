@@ -1,3 +1,10 @@
+kcollectd (0.9.1-1) UNRELEASED; urgency=medium
+
+  * Change upstream to myself.  (Closes: #814935)
+  * Drop Debian patches included upstream.
+
+ -- Antonio Russo <antonio.e.russo@gmail.com>  Wed, 17 Apr 2019 00:14:22 -0400
+
 kcollectd (0.9-5) unstable; urgency=medium
 
   * QA upload.
