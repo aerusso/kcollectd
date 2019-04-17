@@ -73,7 +73,7 @@ int main(int argc, char **argv)
       gui->show();
     }
   } 
-  catch(basic_filesystem_error<path> &e) {
+  catch(const std::exception &e) {
     KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
 		"Terminating.", QString(RRD_BASEDIR)));
     exit(1);

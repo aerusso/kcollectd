@@ -127,21 +127,21 @@ static void get_rrds(const boost::filesystem::path rrdpath,
   const directory_iterator end_itr;
   for (directory_iterator host(rrdpath); host != end_itr; ++host ) {
     if (is_directory(*host)) {
-      QTreeWidgetItem *hostitem = mkItem(listview, host->leaf());
+      QTreeWidgetItem *hostitem = mkItem(listview, host->path().filename().string());
       hostitem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
       for (directory_iterator sensor(*host); sensor != end_itr; ++sensor ) {
 	if (is_directory(*sensor)) {
-	  QTreeWidgetItem *sensoritem = mkItem(hostitem, sensor->leaf());
+	  QTreeWidgetItem *sensoritem = mkItem(hostitem, sensor->path().filename().string());
 	  sensoritem->setFlags(sensoritem->flags() & ~Qt::ItemIsSelectable);
 	  for (directory_iterator rrd(*sensor); rrd != end_itr; ++rrd ) {
 	    if (is_regular(*rrd) && extension(*rrd) == ".rrd") {
 	      QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
 	      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
 	      std::ostringstream info;
-	      info << host->leaf() << delimiter
-		   << sensor->leaf() << delimiter
+	      info << host->path().filename().string() << delimiter
+		   << sensor->path().filename().string() << delimiter
 		   << basename(*rrd);
-	      get_datasources(rrd->string(), info.str(), rrditem);
+	      get_datasources(rrd->path().string(), info.str(), rrditem);
 	    }
 	  }
 	}
