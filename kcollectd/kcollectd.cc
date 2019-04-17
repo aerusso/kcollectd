@@ -24,13 +24,14 @@
 
 #include <boost/filesystem.hpp>
 
+#include <QStringList>
 #include <QTreeWidgetItem>
+#include <QCommandLineParser>
+#include <QApplication>
 
+#include <KLocalizedString>
 #include <KAboutData>
-#include <KCmdLineArgs>
-#include <KApplication>
 #include <KMessageBox>
-#include <KLocale>
 
 #include "../config.h"
 
@@ -41,34 +42,38 @@ int main(int argc, char **argv)
   using namespace boost::filesystem;
 
   std::vector<std::string> rrds;
-  KAboutData about("kcollectd", "kcollectd", 
-	ki18n("KCollectd"), VERSION, 
-	ki18n("Viewer for Collectd-databases"),
- 	KAboutData::License_GPL,
-	ki18n("© 2008, 2009 M G Berberich"),
-	ki18n("Maintainer and developer"),
+  QApplication application(argc, argv);
+  KAboutData about("kcollectd",
+	i18n("KCollectd"), VERSION,
+	i18n("Viewer for Collectd-databases"),
+	KAboutLicense::GPL,
+	i18n("© 2008, 2009 M G Berberich"),
+	i18n("Maintainer and developer"),
 	"http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd.html",
 	"berberic@fmi.uni-passau.de");
-  about.addAuthor(ki18n("M G Berberich"), KLocalizedString(),
+  about.addAuthor(i18n("M G Berberich"), i18n("Maintainer and developer"),
 	"M G Berberich <berberic@fmi.uni-passau.de>", 
 	"http://www.forwiss.uni-passau.de/~berberic");
-  about.setTranslator(ki18nc("NAME OF TRANSLATORS", "Your names"),
-	ki18nc("EMAIL OF TRANSLATORS", "Your emails"));
-  KCmdLineArgs::init(argc, argv, &about);
+  about.setTranslator(i18nc("NAME OF TRANSLATORS", "Your names"),
+	i18nc("EMAIL OF TRANSLATORS", "Your emails"));
 
-  KCmdLineOptions options;
-  options.add("+[file]", ki18n("A kcollectd-file to open"));
-  KCmdLineArgs::addCmdLineOptions( options );
+  KAboutData::setApplicationData(about);
 
-  KApplication application;
-  KCmdLineArgs *args = KCmdLineArgs::parsedArgs();  
+  QCommandLineParser parser;
+  parser.addHelpOption();
+  parser.addVersionOption();
+
+  parser.addPositionalArgument("+[file]", i18n("A kcollectd-file to open"));
+  parser.process(application);
+
+  const QStringList args = parser.positionalArguments();
   try {
     if (application.isSessionRestored()) {
       kRestoreMainWindows<KCollectdGui>();
     } else {      
       KCollectdGui *gui = new KCollectdGui;
       // handling arguments
-      if(args->count() == 1) gui->load(args->arg(0));
+      if(args.length() == 1) gui->load(args.at(0));
       gui->setObjectName("kcollectd#");
       gui->show();
     }

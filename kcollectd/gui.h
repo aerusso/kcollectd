@@ -24,15 +24,17 @@
 
 #include <KMainWindow>
 #include <kactioncollection.h>
+#include <KConfigGroup>
 
 #include "graph.h"
 
 class QLabel;
 class Graph;
 class QTreeWidget;
+class QTreeWidgetItem;
 class QVBoxLayout;
-class KAction;
-class KPushButton;
+class QAction;
+class QPushButton;
 
 class KCollectdGui : public KMainWindow // QWidget
 {
@@ -70,8 +72,8 @@ private:
   QTreeWidget *listview_;
   QVBoxLayout *vbox;
   Graph * graph;
-  KPushButton *auto_button;
-  KAction *auto_action, *panel_action;
+  QPushButton *auto_button;
+  QAction *auto_action, *panel_action;
   QString filename;
 
   KActionCollection action_collection;

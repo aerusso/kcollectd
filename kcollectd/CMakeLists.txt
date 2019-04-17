@@ -1,9 +1,22 @@
+project (kcollectd)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAG} ${KDE4_ENABLE_EXCEPTIONS}")
+set(KCOLLECTD_ICONS_PNG
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/16-apps-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/22-apps-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/32-apps-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/48-apps-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/64-apps-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/128-apps-kcollectd.png
+)
 
-find_package(Boost COMPONENTS filesystem system)
+set(KCOLLECTD_ICONS_SVG
+${CMAKE_CURRENT_SOURCE_DIR}/icons/sc-apps-kcollectd.svgz
+)
 
-kde4_add_executable(kcollectd 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAG}")
+
+add_executable(kcollectd
   graph.cc
   gui.cc
   kcollectd.cc
@@ -11,12 +24,19 @@ kde4_add_executable(kcollectd
   rrd_interface.cc
   timeaxis.cc)
 set(rrd_LIBRARIES rrd)
-include_directories(${KDE4_INCLUDES} ${Boost_INCLUDE_DIRS})
-target_link_libraries(kcollectd 
-  ${KDE4_KDEUI_LIBS} 
-  ${KDE4_KIO_LIBS} 
-  ${Boost_LIBRARIES} 
-  ${rrd_LIBRARIES})
+
+target_link_libraries(kcollectd
+PUBLIC
+  KF5::XmlGui
+  KF5::WidgetsAddons
+  KF5::IconThemes
+  KF5::I18n
+  Qt5::Core
+  Qt5::Widgets
+  Qt5::Gui
+  ${Boost_LIBRARIES}
+  ${rrd_LIBRARIES}
+)
 install(TARGETS kcollectd  ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 # desktop-file
@@ -28,5 +48,3 @@ set(SHARED_MIME_INFO_MINIMUM_VERSION "0.23")
 find_package(SharedMimeInfo REQUIRED)
 install(FILES kcollectd.xml DESTINATION ${XDG_MIME_INSTALL_DIR})
 update_xdg_mimetypes(${XDG_MIME_INSTALL_DIR})
-
-subdirs(icons)

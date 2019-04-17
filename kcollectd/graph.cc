@@ -27,16 +27,19 @@
 #include <QPainter>
 #include <QPolygon>
 #include <QRect>
+#include <QFrame>
+#include <QFontDatabase>
+#include <QIcon>
+#include <QMenu>
 
-#include <KLocale>
-#include <KGlobalSettings>
-#include <KIcon>
-#include <KMenu>
+#include <KLocalizedString>
 
 #include "rrd_interface.h"
 #include "misc.h"
 #include "timeaxis.h"
-#include "graph.moc"
+#include "graph.h"
+
+#define     I18N_NOOP(text)   text
 
 // some magic numbers
 
@@ -101,8 +104,8 @@ void drawArrow(QPainter &p, const QPoint &first,  const QPoint &second)
 Graph::Graph(QWidget *parent) :
   QFrame(parent), data_is_valid(false), 
   start(time(0)-3600*24), span(3600*24), step(1), dragging(false),
-  font(KGlobalSettings::generalFont()), 
-  small_font(KGlobalSettings::smallestReadableFont()),
+  font(QFontDatabase::systemFont(QFontDatabase::GeneralFont)),
+  small_font(QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont)),
   color_major(140, 115, 60), color_minor(80, 65, 34), 
   color_graph_bg(0, 0, 0),
   //color_major(255, 180, 180), color_minor(220, 220, 220), 
@@ -275,10 +278,10 @@ void Graph::drawHeader(QPainter &paint)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  QString buffer_from = Qstrftime(format.toAscii(), localtime(&data_start));
-  QString buffer_to = Qstrftime(format.toAscii(), localtime(&data_end));
-  QString label = QString(i18n("from %1 to %2"))
-    .arg(buffer_from) .arg(buffer_to);
+  QString buffer_from = Qstrftime(format.toLatin1(), localtime(&data_start));
+  QString buffer_to = Qstrftime(format.toLatin1(), localtime(&data_end));
+  QString label = i18n("from %1 to %2",
+    buffer_from, buffer_to);
   int x = (contentsRect().left()+contentsRect().right())/2
     - fontmetric.width(label)/2;
   int y = fontmetric.ascent() + marg;
@@ -305,11 +308,9 @@ void Graph::drawFooter(QPainter &paint, int left, int right)
   else
     format = i18n("%A %Y-%m-%d %H:%M:%S");
 
-  QString buffer_from = Qstrftime(format.toAscii(), localtime(&data_start));
-  QString buffer_to = Qstrftime(format.toAscii(), localtime(&data_end));
-  QString label = QString(i18n("from %1 to %2"))
-    .arg(buffer_from)
-    .arg(buffer_to);
+  QString buffer_from = Qstrftime(format.toLatin1(), localtime(&data_start));
+  QString buffer_to = Qstrftime(format.toLatin1(), localtime(&data_end));
+  QString label = i18n("from %1 to %2", buffer_from, buffer_to);
   
   fontmetric.width(label);
   paint.drawText((left+right)/2-fontmetric.width(label)/2, 
@@ -357,7 +358,7 @@ void Graph::drawXLabel(QPainter &paint, int y, int left, int right,
     time_t t = center ? *i + i.interval() / 2 : *i;
     tm tm;
     localtime_r(&t, &tm);
-    QString label = Qstrftime(i18n(format.toAscii()).toAscii(), &tm);
+    QString label = Qstrftime(i18n(format.toLatin1()).toLatin1(), &tm);
     if(! label.isNull()) {
       const int width = paint.fontMetrics().width(label);
       int x = center 
@@ -832,21 +833,21 @@ void Graph::mousePressEvent(QMouseEvent *e)
     actionmap acts; 
     
     // context-menu
-    KMenu menu(this);
+    QMenu menu(this);
     
     graph_list::iterator s_graph = graphAt(e->pos());
     
-    menu.addAction(KIcon("list-add"), 
+    menu.addAction(QIcon("list-add"),
 	  i18n("add new subgraph"), this, SLOT(splitGraph()));
 
     if (s_graph != end()) {
-      menu.addAction(KIcon("edit-delete"),
+      menu.addAction(QIcon("edit-delete"),
 	    i18n("delete this subgraph"), this, SLOT(removeGraph()));
       menu.addSeparator();
       
       // generate entries to remove datasources
       for(GraphInfo::iterator i = s_graph->begin(); i != s_graph->end(); ++i) {
-	QAction *T = menu.addAction(KIcon("list-remove"),
+	QAction *T = menu.addAction(QIcon("list-remove"),
 	      i18n("remove ") + i->label);
 	acts[T] = i;
       }

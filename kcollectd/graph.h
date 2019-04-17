@@ -31,6 +31,7 @@
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QWheelEvent>
+#include <QMimeData>
 
 #include "misc.h"
 

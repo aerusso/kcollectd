@@ -32,32 +32,37 @@
 #include <QFile>
 #include <QDomDocument>
 #include <QXmlStreamWriter>
+#include <QPushButton>
+#include <QKeySequence>
+#include <QStandardPaths>
+#include <QMenuBar>
+#include <QMenu>
+#include <QIcon>
+#include <QDrag>
+#include <QUrl>
+#include <QAction>
+#include <QFileDialog>
 
+#include <KLocalizedString>
 #include <kactioncollection.h>
 #include <kmessagebox.h>
-#include <KPushButton>
 #include <KIconLoader>
-#include <KGlobal>
-#include <KLocale>
 #include <KMainWindow>
-#include <KMenuBar>
-#include <KMenu>
 #include <KStandardAction>
-#include <KAction>
 #include <KToggleAction>
-#include <KFileDialog>
 #include <KHelpMenu>
-#include <KStandardDirs>
 
 #include "rrd_interface.h"
 #include "graph.h"
-#include "gui.moc"
+#include "gui.h"
 
 #include "drag_pixmap.xpm"
 
 #ifndef RRD_BASEDIR
 # define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
+
+#define     I18N_NOOP(text)   text
 
 static struct {
   KStandardAction::StandardAction actionType;
@@ -165,20 +170,20 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 	  standard_actions[i].name, this, standard_actions[i].slot);
   // normal actions
   for (size_t i=0; i< sizeof(normal_actions)/sizeof(*normal_actions); ++i) {
-    KAction *act = new KAction(i18n(normal_actions[i].label), this);
+    QAction *act = new QAction(i18n(normal_actions[i].label), this);
     connect(act, SIGNAL(triggered()), this, normal_actions[i].slot);
     actionCollection()->addAction(normal_actions[i].name, act);
   }
   // toggle_actions
-  auto_action = new KAction(KIcon("chronometer"), i18n("Automatic Update"), this);
+  auto_action = new QAction(QIcon::fromTheme("chronometer"), i18n("Automatic Update"), this);
   auto_action->setCheckable(true);
-  auto_action->setShortcut(KShortcut("f8"));
+  auto_action->setShortcut(QKeySequence("f8"));
   actionCollection()->addAction("autoUpdate", auto_action);
   connect(auto_action, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 
-  panel_action = new KAction(i18n("Hide Datasource Tree"), this);
+  panel_action = new QAction(i18n("Hide Datasource Tree"), this);
   panel_action->setCheckable(true);
-  panel_action->setShortcut(KShortcut("f9"));
+  panel_action->setShortcut(QKeySequence("f9"));
   actionCollection()->addAction("hideTree", panel_action);
   connect(panel_action, SIGNAL(toggled(bool)), this, SLOT(hideTree(bool)));
 
@@ -201,23 +206,23 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 
   QHBoxLayout *hbox2 = new QHBoxLayout;
   vbox->addLayout(hbox2);
-  KPushButton *last_month = new KPushButton(i18n("last month"));
+  QPushButton *last_month = new QPushButton(i18n("last month"));
   hbox2->addWidget(last_month);
-  KPushButton *last_week = new KPushButton(i18n("last week"));
+  QPushButton *last_week = new QPushButton(i18n("last week"));
   hbox2->addWidget(last_week);
-  KPushButton *last_day = new KPushButton(i18n("last day"));
+  QPushButton *last_day = new QPushButton(i18n("last day"));
   hbox2->addWidget(last_day);
-  KPushButton *last_hour = new KPushButton(i18n("last hour"));
+  QPushButton *last_hour = new QPushButton(i18n("last hour"));
   hbox2->addWidget(last_hour);
-  KPushButton *zoom_in = new KPushButton(KIcon("zoom-in"), QString());
+  QPushButton *zoom_in = new QPushButton(QIcon::fromTheme("zoom-in"), QString());
   zoom_in->setToolTip(i18n("increases magnification"));
   zoom_in->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_in);
-  KPushButton *zoom_out = new KPushButton(KIcon("zoom-out"), QString());
+  QPushButton *zoom_out = new QPushButton(QIcon::fromTheme("zoom-out"), QString());
   zoom_out->setToolTip(i18n("reduces magnification"));
   zoom_out->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   hbox2->addWidget(zoom_out);
-  auto_button = new KPushButton(KIcon("chronometer"), QString());
+  auto_button = new QPushButton(QIcon::fromTheme("chronometer"), QString());
   auto_button->setToolTip(i18n("toggle automatic update-and-follow mode."));
 #if 1
   QString text = i18n("<p>This button toggles the "
@@ -246,18 +251,18 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   connect(auto_button, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 
   // Menu
-  KMenu *fileMenu = new KMenu(i18n("&File"));
+  QMenu *fileMenu = new QMenu(i18n("&File"));
   menuBar()->addMenu(fileMenu);
   fileMenu->addAction(actionCollection()->action("open"));
   fileMenu->addAction(actionCollection()->action("save"));
   fileMenu->addSeparator();
   fileMenu->addAction(actionCollection()->action("quit"));
   
-  KMenu *editMenu = new KMenu(i18n("&Edit"));
+  QMenu *editMenu = new QMenu(i18n("&Edit"));
   menuBar()->addMenu(editMenu);
   editMenu->addAction(actionCollection()->action("splitGraph"));
 
-  KMenu *viewMenu = new KMenu(i18n("&View"));
+  QMenu *viewMenu = new QMenu(i18n("&View"));
   menuBar()->addMenu(viewMenu);
   viewMenu->addAction(actionCollection()->action("zoomIn"));
   viewMenu->addAction(actionCollection()->action("zoomOut"));
@@ -322,8 +327,8 @@ void KCollectdGui::hideTree(bool t)
 
 void KCollectdGui::load()
 {
-  QString file = KFileDialog::getOpenFileName(KUrl(), 
-	"application/x-kcollectd", this);
+  QString file = QFileDialog::getOpenFileName(this, "",
+    QDir::homePath(), "application/x-kcollectd");
   if (file.isEmpty()) return;
 
   load(file);
@@ -331,8 +336,8 @@ void KCollectdGui::load()
 
 void KCollectdGui::save()
 {
-  QString file = KFileDialog::getSaveFileName(KUrl(), 
-	"application/x-kcollectd", this);
+  QString file = QFileDialog::getSaveFileName(this, "",
+    QDir::homePath(), "application/x-kcollectd");
   if (file.isEmpty()) return;
 
   QFile out(file);
@@ -427,8 +432,8 @@ void KCollectdGui::saveProperties(KConfigGroup &conf)
   } else {
     char hostname[100];
     gethostname(hostname, sizeof(hostname));
-    QString file = QString("%1session-%2-%3")
-      .arg(KGlobal::dirs()->saveLocation("appdata"))
+    QString file = QString("%1/session-%2-%3")
+      .arg(QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation))
       .arg(hostname)
       .arg(getpid());
     save(file);
