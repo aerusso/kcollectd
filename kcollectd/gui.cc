@@ -420,7 +420,7 @@ void KCollectdGui::saveProperties(KConfigGroup &conf)
 {
   conf.writeEntry("hide-navigation", listview_->isHidden());
   conf.writeEntry("auto-update", graph->autoUpdate());
-  conf.writeEntry("range", static_cast<int>(graph->range()));
+  conf.writeEntry("range", qint64(graph->range()));
   if (!graph->changed() && !filename.isEmpty()) {
     conf.writeEntry("filename", QDir().absoluteFilePath(filename));
     conf.writeEntry("file-is-session", false);
@@ -446,10 +446,12 @@ void KCollectdGui::readProperties(const KConfigGroup &conf)
   bool file_is_session = conf.readEntry("file-is-session", false);
   if (!file.isEmpty()) {
     load(file);
-    if (file_is_session)
+    if (file_is_session) {
       QFile::remove(file);
-    else
+      graph->changed(true);
+    } else {
       filename = file;
+    }
   }
   panel_action->setChecked(nav);
   autoUpdate(aut);
