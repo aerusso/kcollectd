@@ -351,7 +351,6 @@ void Graph::drawXLabel(QPainter &paint, int y, int left, int right,
   const linMap xmap(data_start, left, data_end, right);
 
   // draw labels
-  paint.setPen(palette().windowText().color());
   if (center) --i;
   for(; *i <= data_end; ++i) {
     // special handling for localtime/mktime on DST
