@@ -485,7 +485,12 @@ void Graph::drawYLabel(QPainter &paint, const QRect &rect,
 
   // make sure labels don not overlap
   const int fontheight = fontmetric.height();
-  while(rect.height() < fontheight * (y_range.max()-y_range.min())/base) 
+
+  // if we cannot even fit the text, just abort instead of crashing
+  if (rect.height() < fontheight)
+    return;
+
+  while(rect.height() < fontheight * (y_range.max()-y_range.min())/base)
     if (rect.height() > fontheight * (y_range.max()-y_range.min())/base/2)
       base *= 2;
     else if (rect.height() > fontheight * (y_range.max()-y_range.min())/base/5)
