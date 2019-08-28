@@ -1,5 +1,5 @@
 [Desktop Entry]
-Exec=kcollectd
+Exec=kcollectd %f
 Icon=kcollectd
 Type=Application
 Terminal=false
