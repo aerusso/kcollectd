@@ -343,7 +343,7 @@ void KCollectdGui::save()
   QFile out(file);
   if (out.exists()) {
     int answer = KMessageBox::questionYesNo(this, 
-	  i18n("file ‘%1’ allready exists.\n"
+	  i18n("file ‘%1’ already exists.\n"
 		"Do you want to overwrite it?", file));
     if (answer != KMessageBox::Yes) {
       return;

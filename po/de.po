@@ -148,7 +148,7 @@ msgstr "Entferne diesen Untergraphen"
 
 #: ../kcollectd/gui.cc:260
 msgid ""
-"file ‘%1’ allready exists.\n"
+"file ‘%1’ already exists.\n"
 "Do you want to overwrite it?"
 msgstr ""
 "Die Datei ‚%1‘ existiert bereits.\n"

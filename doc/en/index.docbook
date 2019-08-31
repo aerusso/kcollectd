@@ -1,16 +1,16 @@
 <?xml version="1.0" ?>
 <!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "dtd/kdex.dtd" [
-  <!ENTITY kcollectd "<application>kcollectd 0.8</application>">
+  <!ENTITY kcollectd "<application>kcollectd 0.10.2</application>">
   <!ENTITY kappname "&kcollectd;">
   <!ENTITY package "kcollectd">
   <!ENTITY % addindex "IGNORE">
   <!ENTITY % English "INCLUDE"><!-- change language only here -->
-  
-  
+
+
   <!-- Do not define any other entities; instead, use the entities
        from kde-genent.entities and $LANG/user.entities. -->
 ]>
-<!-- kdoctemplate v0.8 October 1 1999 
+<!-- kdoctemplate v0.8 October 1 1999
      Minor update to "Credits and Licenses" section on August 24, 2000
      Removed "Revision history" section on 22 January 2001
      Changed to Installation/Help menu entities 18 October 2001
@@ -68,13 +68,13 @@ as Authors, publish date, the abstract, and Keywords -->
      and in the FDL itself on how to use it. -->
 <legalnotice>&FDLNotice;</legalnotice>
 
-<date>2009-10-11</date>
-<releaseinfo>0.8.1</releaseinfo>
+<date>2019-08-31</date>
+<releaseinfo>0.10.2</releaseinfo>
 
 <abstract>
 <para>
-&kcollectd; is a small applications that allows to view rrd
-       datacollections that have been created by collectd.
+&kcollectd; displays system time-series monitoring information in collectd
+rrd datacollections.
 </para>
 </abstract>
 
@@ -89,33 +89,34 @@ as Authors, publish date, the abstract, and Keywords -->
 <chapter id="introduction">
 <title>Introduction</title>
 <para>
-&kcollectd; is a small applications that allows to view rrd
-datacollections that have been created by collectd.
-</para>
-<para>
-It is quite limited, but allows to zoom and scroll around and has an
-automatic update and follow mode, which makes it some kind of
-statusmonitor.
+&kcollectd; is a simple application that presents collectd time-series data
+in a natural way.  The mousewheel up and down action lets you zoom in and
+out, respectively, and click and dragging lets you move around (in the
+recorded history).  There is an automatic update-and-follow mode, which
+presents new data in real time, allowing kcollectd to be used as a status
+monitor.
 </para>
 </chapter>
 
 <chapter id="using-kcollectd">
 <title>Using &kcollectd;</title>
 <para>
-At the left side of the window is a tree, that lists all collectd
-datasources that kcollectd has found. You can select one or more of
-them with the mouse.
+At the left side of the window there is a tree listing all identified
+collectd data sources.  You can display any such data by dragging it onto
+the desired graph in the right hand panel.
 </para>
 <para>
-At the right the selected datasources are shown as graph. You can move
-the graph to the left or right with the mouse und zoom in or out with
-the mousewheel or the zoombuttons.
+At the right, various data sources are shown in graphs. You can move
+the graph to the left or right with the mouse and zoom in or out with
+the mousewheel or the zoombuttons.  Plots can be created and destroyed from
+the right-click context menu.  The context menu also allows for the deletion
+of unwanted data sources from a given graph.
 </para>
 <para>
-At the lower left there is a auto-update-button that allows to switch
-kcollectd into the update-and-follow-mode.  In this mode the graph
-still can be zoomed, but always displays now near the right edge and
-can not be scrolled any more.
+At the lower left the auto-update-button switches kcollectd into the
+update-and-follow-mode.  In this mode the right side of the graph is pinned to
+the current time, and new data is presented in real time.  The plot can still
+be zoomed with the mouse wheel.
 </para>
 </chapter>
 
@@ -146,16 +147,17 @@ Contributors:
 <para>
 Documentation copyright 2009 M G
 Berberich <email>berberic@fmi.uni-passau.de</email>
+and 2019 Antonio Russo <email>antonio.e.russo@gmail.com</email>
 </para>
 
 <!-- TRANS:CREDIT_FOR_TRANSLATORS -->
 
 &underFDL;               <!-- FDL: do not remove -->
 
-<!-- Determine which license your application is licensed under, 
+<!-- Determine which license your application is licensed under,
      and delete all the remaining licenses below:
 
-     (NOTE:  All documentation are licensed under the FDL, 
+     (NOTE:  All documentation are licensed under the FDL,
      regardless of what license the application uses) -->
 
 &underGPL;        	 <!-- GPL License -->
@@ -175,6 +177,6 @@ sgml-indent-step:0
 sgml-indent-data:nil
 End:
 
-vim:tabstop=2:shiftwidth=2:expandtab 
+vim:tabstop=2:shiftwidth=2:expandtab
 -->
 
