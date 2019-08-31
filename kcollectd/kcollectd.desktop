@@ -2,6 +2,7 @@
 Exec=kcollectd %f
 Icon=kcollectd
 Type=Application
+Keywords=collectd;rrd;monitor;
 Terminal=false
 StartupNotify=true
 Categories=Qt;KDE;Utility;
