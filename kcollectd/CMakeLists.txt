@@ -14,8 +14,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/icons/sc-apps-kcollectd.svgz
 )
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAG}")
-
 add_executable(kcollectd
   graph.cc
   gui.cc
