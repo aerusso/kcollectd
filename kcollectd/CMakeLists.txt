@@ -25,6 +25,8 @@ add_executable(kcollectd
   timeaxis.cc)
 set(rrd_LIBRARIES rrd)
 
+kde_target_enable_exceptions(kcollectd PRIVATE)
+
 target_link_libraries(kcollectd
 PUBLIC
   KF5::XmlGui
