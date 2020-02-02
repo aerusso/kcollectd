@@ -13,6 +13,22 @@ set(KCOLLECTD_ICONS_SVG
 ${CMAKE_CURRENT_SOURCE_DIR}/icons/sc-apps-kcollectd.svgz
 )
 
+set(KCOLLECTD_MIME_ICONS_PNG
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/16-mimetypes-application-x-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/22-mimetypes-application-x-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/32-mimetypes-application-x-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/48-mimetypes-application-x-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/64-mimetypes-application-x-kcollectd.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/128-mimetypes-application-x-kcollectd.png
+)
+
+set(KCOLLECTD_MIME_ICONS_SVG
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/sc-mimetypes-application-x-kcollectd.svgz
+)
+
+ecm_install_icons(
+    ICONS ${KCOLLECTD_ICONS_PNG} ${KCOLLECTD_ICONS_SVG} ${KCOLLECTD_MIME_ICONS_PNG} ${KCOLLECTD_MIME_ICONS_SVG}
+    DESTINATION ${ICON_INSTALL_DIR})
 
 add_executable(kcollectd
   graph.cc
