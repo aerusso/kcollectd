@@ -1,7 +1,7 @@
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
- * 
+ *
  * Copyright (C) 2008 M G Berberich
  *
  * This program is free software: you can redistribute it and/or
@@ -18,44 +18,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string>
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <string>
 
 #include <boost/filesystem.hpp>
 
+#include <QApplication>
+#include <QCommandLineParser>
 #include <QStringList>
 #include <QTreeWidgetItem>
-#include <QCommandLineParser>
-#include <QApplication>
 
-#include <KLocalizedString>
 #include <KAboutData>
+#include <KLocalizedString>
 #include <KMessageBox>
 
 #include "../config.h"
 
 #include "gui.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   using namespace boost::filesystem;
 
   std::vector<std::string> rrds;
   QApplication application(argc, argv);
-  KAboutData about("kcollectd",
-	i18n("KCollectd"), VERSION,
-	i18n("Viewer for Collectd-databases"),
-	KAboutLicense::GPL,
-	i18n("© 2008, 2009 M G Berberich"),
-	i18n("Maintainer and developer"),
-	"http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd.html",
-	"berberic@fmi.uni-passau.de");
+  KAboutData about(
+      "kcollectd", i18n("KCollectd"), VERSION,
+      i18n("Viewer for Collectd-databases"), KAboutLicense::GPL,
+      i18n("© 2008, 2009 M G Berberich"), i18n("Maintainer and developer"),
+      "http://www.forwiss.uni-passau.de/~berberic/Linux/kcollectd.html",
+      "berberic@fmi.uni-passau.de");
   about.addAuthor(i18n("M G Berberich"), i18n("Maintainer and developer"),
-	"M G Berberich <berberic@fmi.uni-passau.de>", 
-	"http://www.forwiss.uni-passau.de/~berberic");
+                  "M G Berberich <berberic@fmi.uni-passau.de>",
+                  "http://www.forwiss.uni-passau.de/~berberic");
   about.setTranslator(i18nc("NAME OF TRANSLATORS", "Your names"),
-	i18nc("EMAIL OF TRANSLATORS", "Your emails"));
+                      i18nc("EMAIL OF TRANSLATORS", "Your emails"));
 
   KAboutData::setApplicationData(about);
 
@@ -70,17 +67,18 @@ int main(int argc, char **argv)
   try {
     if (application.isSessionRestored()) {
       kRestoreMainWindows<KCollectdGui>();
-    } else {      
+    } else {
       KCollectdGui *gui = new KCollectdGui;
       // handling arguments
-      if(args.length() == 1) gui->load(args.at(0));
+      if (args.length() == 1)
+        gui->load(args.at(0));
       gui->setObjectName("kcollectd#");
       gui->show();
     }
-  } 
-  catch(const std::exception &e) {
+  } catch (const std::exception &e) {
     KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
-		"Terminating.", QString(RRD_BASEDIR)));
+                               "Terminating.",
+                               QString(RRD_BASEDIR)));
     exit(1);
   }
 

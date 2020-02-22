@@ -23,15 +23,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
 
-#include <rrd.h>
 #include <errno.h>
+#include <rrd.h>
 
 #include "rrd_interface.h"
 
@@ -41,13 +41,11 @@
  * copying the filename is probably unnecessary, but the signature of
  * rrd_info does not guarantee leaving it alone.
  */
-static inline 
-rrd_info_t *rrd_info(int, const std::string &filename)
-{
-  char c_file[filename.length()+1];
+static inline rrd_info_t *rrd_info(int, const std::string &filename) {
+  char c_file[filename.length() + 1];
   filename.copy(c_file, std::string::npos);
   c_file[filename.length()] = 0;
-  char * arg[] = { 0, c_file, 0 };
+  char *arg[] = {0, c_file, 0};
   return rrd_info(2, arg);
 }
 
@@ -56,8 +54,7 @@ rrd_info_t *rrd_info(int, const std::string &filename)
  *
  * using rrd_info
  */
-void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
-{
+void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list) {
   using namespace std;
 
   list.clear();
@@ -66,17 +63,17 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
   rrd_info_t *i = infos;
   while (i) {
     string line(i->key);
-    if (line.substr(0,3) == "ds[") {
-      size_t e =  line.find("].type");
+    if (line.substr(0, 3) == "ds[") {
+      size_t e = line.find("].type");
       if (e != string::npos) {
-	string name = line.substr(3, line.find("].type")-3);
-	list.insert(name);
+        string name = line.substr(3, line.find("].type") - 3);
+        list.insert(name);
       }
     }
     i = i->next;
   }
-  if (infos) 
-    rrd_info_free(infos);  
+  if (infos)
+    rrd_info_free(infos);
 }
 
 /**
@@ -85,10 +82,9 @@ void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list)
  * @a start and @a end may get changed from this function and represent
  * the start and end of the data returned.
  */
-void get_rrd_data (const std::string &file, const std::string &ds, 
-      time_t *start, time_t *end, unsigned long *step, const char *type, 
-      std::vector<double> *result)
-{
+void get_rrd_data(const std::string &file, const std::string &ds, time_t *start,
+                  time_t *end, unsigned long *step, const char *type,
+                  std::vector<double> *result) {
   unsigned long ds_cnt = 0;
   char **ds_name;
   rrd_value_t *data;
@@ -96,22 +92,22 @@ void get_rrd_data (const std::string &file, const std::string &ds,
 
   result->clear();
 
-  status = rrd_fetch_r(file.c_str(), type, 
-	start, end, step, &ds_cnt, &ds_name, &data); 
+  status = rrd_fetch_r(file.c_str(), type, start, end, step, &ds_cnt, &ds_name,
+                       &data);
   if (status != 0) {
     return;
   }
 
   const unsigned long length = (*end - *start) / *step;
 
-  for(unsigned int i=0; i<ds_cnt; ++i) {
+  for (unsigned int i = 0; i < ds_cnt; ++i) {
     if (ds != ds_name[i]) {
       free(ds_name[i]);
       continue;
     }
-    
-    for (unsigned int n = 0; n < length; ++n) 
-      result->push_back (data[n * ds_cnt + i]);
+
+    for (unsigned int n = 0; n < length; ++n)
+      result->push_back(data[n * ds_cnt + i]);
     break;
 
     free(ds_name[i]);

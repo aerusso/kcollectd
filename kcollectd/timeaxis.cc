@@ -1,7 +1,7 @@
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
- * 
+ *
  * Copyright (C) 2008 M G Berberich
  *
  * This program is free software: you can redistribute it and/or
@@ -20,23 +20,25 @@
 
 #include "timeaxis.h"
 
-void time_iterator::set(time_t start, time_t st, it_type ty)
-{
+void time_iterator::set(time_t start, time_t st, it_type ty) {
   step = st;
-  if (!step) return;
+  if (!step)
+    return;
 
   type = ty;
 
-  switch(type) {
+  switch (type) {
   case seconds: {
     tzset();
     localtime_r(&start, &now_tm);
-    now_t = ((start + now_tm.tm_gmtoff + step) / step) * step - now_tm.tm_gmtoff;
-    break; }
+    now_t =
+        ((start + now_tm.tm_gmtoff + step) / step) * step - now_tm.tm_gmtoff;
+    break;
+  }
   case weeks:
     tzset();
     localtime_r(&start, &now_tm);
-    step *= 3600*24*7;
+    step *= 3600 * 24 * 7;
     now_tm.tm_sec = now_tm.tm_min = now_tm.tm_hour = 0;
     now_tm.tm_mday -= now_tm.tm_wday - (now_tm.tm_wday == 0 ? 1 : 8);
     now_t = mktime(&now_tm);
@@ -67,10 +69,8 @@ void time_iterator::set(time_t start, time_t st, it_type ty)
   }
 }
 
-
-time_iterator &time_iterator::operator++()
-{
-  switch(type) {
+time_iterator &time_iterator::operator++() {
+  switch (type) {
   case seconds:
   case weeks:
     now_t += step;
@@ -92,10 +92,8 @@ time_iterator &time_iterator::operator++()
   return *this;
 }
 
-
-time_iterator &time_iterator::operator--()
-{
-  switch(type) {
+time_iterator &time_iterator::operator--() {
+  switch (type) {
   case seconds:
   case weeks:
     now_t -= step;
@@ -117,23 +115,21 @@ time_iterator &time_iterator::operator--()
   return *this;
 }
 
-time_t time_iterator::interval()
-{
-  switch(type) {
+time_t time_iterator::interval() {
+  switch (type) {
   case seconds:
   case weeks:
     return step;
   case month:
-    return step * 3600*24*30;
+    return step * 3600 * 24 * 30;
   case years:
-    return step * 3600*24*365;
+    return step * 3600 * 24 * 365;
   }
   return 0;
 }
 
-const struct tm *time_iterator::tm()
-{
-  switch(type) {
+const struct tm *time_iterator::tm() {
+  switch (type) {
   case seconds:
   case weeks:
     tzset();
@@ -145,4 +141,3 @@ const struct tm *time_iterator::tm()
   }
   return &now_tm;
 }
-

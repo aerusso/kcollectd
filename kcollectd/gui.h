@@ -2,7 +2,7 @@
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
- * 
+ *
  * Copyright (C) 2008 M G Berberich
  *
  * This program is free software: you can redistribute it and/or
@@ -22,9 +22,9 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include <KConfigGroup>
 #include <KMainWindow>
 #include <kactioncollection.h>
-#include <KConfigGroup>
 
 #include "graph.h"
 
@@ -39,19 +39,20 @@ class QPushButton;
 class KCollectdGui : public KMainWindow // QWidget
 {
   Q_OBJECT;
+
 public:
-  KCollectdGui(QWidget *parent=0);
+  KCollectdGui(QWidget *parent = 0);
   virtual ~KCollectdGui();
 
   QTreeWidget *listview() { return listview_; }
-  KActionCollection* actionCollection() { return &action_collection; }
+  KActionCollection *actionCollection() { return &action_collection; }
 
   void set(Graph *graph);
   void load(const QString &filename);
   void save(const QString &filename);
 
-public slots:  
-  void startDrag(QTreeWidgetItem * widget, int col);
+public slots:
+  void startDrag(QTreeWidgetItem *widget, int col);
   virtual void last_month();
   virtual void last_week();
   virtual void last_day();
@@ -71,7 +72,7 @@ protected:
 private:
   QTreeWidget *listview_;
   QVBoxLayout *vbox;
-  Graph * graph;
+  Graph *graph;
   QPushButton *auto_button;
   QAction *auto_action, *panel_action;
   QString filename;
@@ -79,39 +80,18 @@ private:
   KActionCollection action_collection;
 };
 
-inline void KCollectdGui::last_month()
-{
-  graph->last(3600*24*31);
-}
+inline void KCollectdGui::last_month() { graph->last(3600 * 24 * 31); }
 
-inline void KCollectdGui::last_week()
-{
-  graph->last(3600*24*7);
-}
+inline void KCollectdGui::last_week() { graph->last(3600 * 24 * 7); }
 
-inline void KCollectdGui::last_day()
-{
-  graph->last(3600*24);
-}
+inline void KCollectdGui::last_day() { graph->last(3600 * 24); }
 
-inline void KCollectdGui::last_hour()
-{
-  graph->last(3600);
-}
+inline void KCollectdGui::last_hour() { graph->last(3600); }
 
-inline void KCollectdGui::zoomIn()
-{
-  graph->zoom(1.0/1.259921050);
-}
+inline void KCollectdGui::zoomIn() { graph->zoom(1.0 / 1.259921050); }
 
-inline void KCollectdGui::zoomOut()
-{
-  graph->zoom(1.259921050);
-}
+inline void KCollectdGui::zoomOut() { graph->zoom(1.259921050); }
 
-inline void KCollectdGui::splitGraph()
-{
-  graph->splitGraph();
-}
+inline void KCollectdGui::splitGraph() { graph->splitGraph(); }
 
 #endif

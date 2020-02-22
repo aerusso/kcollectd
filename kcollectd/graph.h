@@ -2,7 +2,7 @@
 /*
  * This file is part of the source of kcollectd, a viewer for
  * rrd-databases created by collectd
- * 
+ *
  * Copyright (C) 2008 M G Berberich
  *
  * This program is free software: you can redistribute it and/or
@@ -26,21 +26,19 @@
 #include <vector>
 
 #include <QFrame>
-#include <QPixmap>
-#include <QRect>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPaintEvent>
+#include <QPixmap>
+#include <QRect>
 #include <QWheelEvent>
-#include <QMimeData>
 
 #include "misc.h"
 
 class time_iterator;
 
-class GraphInfo
-{
+class GraphInfo {
 public:
-
   struct datasource {
     QString rrd;
     QString ds;
@@ -67,15 +65,14 @@ public:
   typedef std::vector<datasource>::const_iterator const_iterator;
 
   iterator begin() { return dslist.begin(); }
-  iterator end()   { return dslist.end(); }
-  const_iterator begin() const { return dslist.begin(); } 
-  const_iterator end() const   { return dslist.end(); }
+  iterator end() { return dslist.end(); }
+  const_iterator begin() const { return dslist.begin(); }
+  const_iterator end() const { return dslist.end(); }
 
   void erase(iterator i) { dslist.erase(i); }
   bool empty() const { return dslist.empty(); }
 
 private:
-  
   int top_, bottom_, legend_lines_;
   std::vector<datasource> dslist;
 };
@@ -85,12 +82,13 @@ private:
  */
 class GraphMimeData : public QMimeData {
   Q_OBJECT
- public:
+public:
   void setGraph(const QString &rrd, const QString &ds, const QString &label);
   const QString &rrd() const { return rrd_; }
   const QString &ds() const { return ds_; }
   const QString &label() const { return label_; }
- private:
+
+private:
   QString rrd_;
   QString ds_;
   QString label_;
@@ -99,18 +97,17 @@ class GraphMimeData : public QMimeData {
 /**
  *
  */
-class Graph : public QFrame
-{
+class Graph : public QFrame {
   Q_OBJECT;
- public:
 
+public:
   typedef std::vector<GraphInfo> graph_list;
   typedef graph_list::iterator iterator;
   typedef graph_list::const_iterator const_iterator;
 
-  explicit Graph(QWidget *parent=0);
-  Graph(QWidget *parent, const std::string &rrd, const std::string &ds, 
-	const char *name=0);
+  explicit Graph(QWidget *parent = 0);
+  Graph(QWidget *parent, const std::string &rrd, const std::string &ds,
+        const char *name = 0);
 
   void clear();
   GraphInfo &add(const QString &rrd, const QString &ds, const QString &label);
@@ -124,8 +121,8 @@ class Graph : public QFrame
 
   virtual QSize sizeHint() const;
   virtual void paintEvent(QPaintEvent *ev);
-  virtual void resizeEvent(QResizeEvent*);
-  
+  virtual void resizeEvent(QResizeEvent *);
+
   virtual void last(time_t span);
   virtual void zoom(double factor);
   virtual void mousePressEvent(QMouseEvent *e);
@@ -136,12 +133,12 @@ class Graph : public QFrame
   virtual void dragEnterEvent(QDragEnterEvent *event);
   virtual void dragMoveEvent(QDragMoveEvent *event);
   virtual void dropEvent(QDropEvent *event);
-  
+
   // Iterators
   iterator begin() { return glist.begin(); }
-  iterator end()   { return glist.end(); }
+  iterator end() { return glist.end(); }
   const_iterator begin() const { return glist.begin(); }
-  const_iterator end() const   { return glist.end(); }
+  const_iterator end() const { return glist.end(); }
 
   bool empty() const { return glist.empty(); }
   time_t range() { return span; }
@@ -150,39 +147,40 @@ public slots:
   virtual void removeGraph();
   virtual void splitGraph();
 
- private:
+private:
   bool fetchAllData();
   void drawAll();
   int calcLegendHeights(int box_size, int width);
-  void drawLegend(QPainter &paint, int left, int pos, 
-	int box_size, const GraphInfo &ginfo);
+  void drawLegend(QPainter &paint, int left, int pos, int box_size,
+                  const GraphInfo &ginfo);
   void drawFooter(QPainter &paint, int left, int right);
   void drawHeader(QPainter &paint);
-  void drawYLines(QPainter &paint, const QRect &rect, 
-	const Range &y_range, double base, QColor color);
-  void drawYLabel(QPainter &paint, const QRect &rect, 
-	const Range &range, double base);
-  void drawXLines(QPainter &paint, const QRect &rect, 
-	time_iterator it, QColor color);
-  void drawXLabel(QPainter &paint, int y, int left, int right, 
-	time_iterator it, QString format, bool center);
-  void findXGrid(int width, QString &format, bool &center, 
-       time_iterator &minor_x, time_iterator &major_x, time_iterator &label_x );
-  void drawGraph(QPainter &paint, const QRect &rect, const GraphInfo &gi, 
-	double min, double max);
+  void drawYLines(QPainter &paint, const QRect &rect, const Range &y_range,
+                  double base, QColor color);
+  void drawYLabel(QPainter &paint, const QRect &rect, const Range &range,
+                  double base);
+  void drawXLines(QPainter &paint, const QRect &rect, time_iterator it,
+                  QColor color);
+  void drawXLabel(QPainter &paint, int y, int left, int right, time_iterator it,
+                  QString format, bool center);
+  void findXGrid(int width, QString &format, bool &center,
+                 time_iterator &minor_x, time_iterator &major_x,
+                 time_iterator &label_x);
+  void drawGraph(QPainter &paint, const QRect &rect, const GraphInfo &gi,
+                 double min, double max);
   void layout();
-  
+
   graph_list::iterator graphAt(const QPoint &pos);
   graph_list::const_iterator graphAt(const QPoint &pos) const;
 
   // rrd-data
   graph_list glist;
   bool data_is_valid;
-  time_t start;		// user set start of graph
-  time_t span;		// user-set span of graph
-  time_t data_start;	// real start of data (from rrd_fetch)
-  time_t data_end;	// real end of data (from rrd_fetch)
-  time_t tz_off; 	// offset of the local timezone from GMT
+  time_t start;      // user set start of graph
+  time_t span;       // user-set span of graph
+  time_t data_start; // real start of data (from rrd_fetch)
+  time_t data_end;   // real end of data (from rrd_fetch)
+  time_t tz_off;     // offset of the local timezone from GMT
   unsigned long step;
 
   // technical helpers
@@ -210,9 +208,8 @@ public slots:
 /**
  * add a datasource to the GraphInfo
  */
-inline void 
-GraphInfo::add(const QString &rrd, const QString &ds, const QString &label)
-{
+inline void GraphInfo::add(const QString &rrd, const QString &ds,
+                           const QString &label) {
   datasource new_ds;
   new_ds.rrd = rrd;
   new_ds.ds = ds;
@@ -223,29 +220,26 @@ GraphInfo::add(const QString &rrd, const QString &ds, const QString &label)
 /**
  * set graph-infos.
  */
-inline void 
-GraphMimeData::setGraph(const QString &r, const QString &d, const QString &l)
-{
+inline void GraphMimeData::setGraph(const QString &r, const QString &d,
+                                    const QString &l) {
   rrd_ = r;
   ds_ = d;
   label_ = l;
 }
 
 /**
- * 
+ *
  */
-inline GraphInfo &
-Graph::add(const QString &rrd, const QString &ds, const QString &label)
-{
+inline GraphInfo &Graph::add(const QString &rrd, const QString &ds,
+                             const QString &label) {
   GraphInfo &gi = add();
   gi.add(rrd, ds, label);
   data_is_valid = false;
   return gi;
 }
 
-inline GraphInfo &Graph::add() 
-{ 
-  GraphInfo gi; 
+inline GraphInfo &Graph::add() {
+  GraphInfo gi;
   glist.push_back(gi);
   changed(true);
   layout();
@@ -253,10 +247,6 @@ inline GraphInfo &Graph::add()
   return glist.back();
 }
 
-
-inline QSize Graph::sizeHint() const
-{
-  return QSize(640, 480);
-}
+inline QSize Graph::sizeHint() const { return QSize(640, 480); }
 
 #endif

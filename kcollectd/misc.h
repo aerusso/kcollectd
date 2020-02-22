@@ -31,21 +31,20 @@ std::string si_number(double d, int p, const std::string &s, double m);
 
 QString Qstrftime(const char *format, const tm *t);
 
-
 /**
  * linear mapping from range [x1, x2] to range [y1, y2]
  */
 class linMap {
   double m_, t_;
+
 public:
   linMap(double x1, double y1, double x2, double y2) {
-    m_ = (y2-y1)/(x2-x1);
-    t_ = y1-m_*x1;
+    m_ = (y2 - y1) / (x2 - x1);
+    t_ = y1 - m_ * x1;
   }
   double operator()(double x) const { return m_ * x + t_; }
   double m() const { return m_; }
 };
-
 
 /**
  * small helper holding tow doubles e.g. a point
@@ -54,20 +53,24 @@ class Range {
   double x_;
   double y_;
   static const double NaN;
+
 public:
-  Range() : x_(NaN), y_(NaN) { }
-  Range(double x, double y) : x_(x), y_(y) { }
+  Range() : x_(NaN), y_(NaN) {}
+  Range(double x, double y) : x_(x), y_(y) {}
   double min() const { return x_; }
   double max() const { return y_; }
   void min(double a) { x_ = a; }
   void max(double a) { y_ = a; }
-  void set(double x, double y) { x_ = x; y_ = y; }
+  void set(double x, double y) {
+    x_ = x;
+    y_ = y;
+  }
   bool isValid() const { return x_ != NaN; }
 };
 
-Range ds_minmax(const std::vector<double> &avg_data, 
-      const std::vector<double> &min_data,
-      const std::vector<double> &max_data);
+Range ds_minmax(const std::vector<double> &avg_data,
+                const std::vector<double> &min_data,
+                const std::vector<double> &max_data);
 
 Range range_adj(const Range &range, double *base);
 

@@ -26,14 +26,14 @@
 #ifndef RRD_INTERAFCE_H
 #define RRD_INTERAFCE_H
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 void get_dsinfo(const std::string &rrdfile, std::set<std::string> &list);
 
-void get_rrd_data (const std::string &file, const std::string &ds, 
-      time_t *start, time_t *end, unsigned long *step, const char *type, 
-      std::vector<double> *result);
+void get_rrd_data(const std::string &file, const std::string &ds, time_t *start,
+                  time_t *end, unsigned long *step, const char *type,
+                  std::vector<double> *result);
 
 #endif
