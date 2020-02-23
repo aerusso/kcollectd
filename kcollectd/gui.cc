@@ -121,36 +121,124 @@ static QTreeWidgetItem *mkItem(QTreeWidgetItem *item, std::string s) {
   return new QTreeWidgetItem(item, QStringList(QString(s.c_str())));
 }
 
+static void recurseTree(QTreeWidgetItem *item,
+                        const boost::filesystem::directory_iterator &host) {
+  const boost::filesystem::directory_iterator end_itr;
+  const QString separator = QStringLiteral("-");
+
+  for (int childNumber = 0; childNumber < item->childCount(); ++childNumber) {
+    QTreeWidgetItem *newroot = item->child(childNumber);
+    QString rootstr = newroot->text(0);
+    int lastpos = rootstr.lastIndexOf(separator);
+
+    while (childNumber + 1 < item->childCount()) {
+      QTreeWidgetItem *newchild = item->child(childNumber + 1);
+      QString newchildstr = newchild->text(0);
+      int endsearch = std::min(lastpos + 1, newchildstr.length());
+      bool abort = true;
+      int newlastpos = -1;
+
+      for (int characterIndex = 0; characterIndex < endsearch;
+           ++characterIndex) {
+        const QChar character = newchildstr.at(characterIndex);
+        if (character != rootstr.at(characterIndex))
+          break;
+
+        if (character == separator) {
+          newlastpos = characterIndex;
+          if (abort) {
+            if (newroot->childCount() == 0)
+              new QTreeWidgetItem(newroot, QStringList(rootstr));
+            item->removeChild(newchild);
+            newroot->addChild(newchild);
+            abort = false;
+          }
+        }
+      }
+
+      if (abort)
+        break;
+
+      lastpos = newlastpos;
+    }
+
+    if (newroot->childCount() > 0) {
+      newroot->setText(0, rootstr.left(lastpos));
+      for (int newchildNumber = 0; newchildNumber < newroot->childCount();
+           ++newchildNumber) {
+        QTreeWidgetItem *newchild = newroot->child(newchildNumber);
+        newchild->setText(0, newchild->text(0).mid(lastpos + 1, -1));
+        newchild->setFlags(newchild->flags() & ~Qt::ItemIsSelectable);
+      }
+
+      // continue building subfolders
+      recurseTree(newroot, host);
+      continue;
+    }
+
+    // this is the terminal node corresponding to
+    // the full directory
+    std::stack<std::string> stack;
+    std::ostringstream sensorbuilder;
+
+    for (const QTreeWidgetItem *current = newroot; current != NULL;
+         current = current->parent())
+      stack.push(current->text(0).toStdString());
+
+    // don't use the hostname
+    stack.pop();
+
+    // don't start with a separator symbol
+    sensorbuilder << stack.top();
+    stack.pop();
+
+    for (; stack.size() > 0; stack.pop())
+      sensorbuilder << separator.toStdString() << stack.top();
+
+    std::string sensor = sensorbuilder.str();
+
+    for (boost::filesystem::directory_iterator rrd(absolute(*host) / sensor);
+         rrd != end_itr; ++rrd) {
+      if (!is_regular(*rrd) && extension(*rrd) == ".rrd")
+        continue;
+
+      QTreeWidgetItem *rrditem = mkItem(newroot, basename(*rrd));
+      rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
+
+      std::ostringstream info;
+      info << sensor << delimiter << basename(*rrd);
+
+      get_datasources(rrd->path().string(), info.str(), rrditem);
+    }
+  }
+}
+
 static void get_rrds(const boost::filesystem::path rrdpath,
                      QTreeWidget *listview) {
   using namespace boost::filesystem;
 
   const directory_iterator end_itr;
   for (directory_iterator host(rrdpath); host != end_itr; ++host) {
-    if (is_directory(*host)) {
-      QTreeWidgetItem *hostitem =
-          mkItem(listview, host->path().filename().string());
-      hostitem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
-      for (directory_iterator sensor(*host); sensor != end_itr; ++sensor) {
-        if (is_directory(*sensor)) {
-          QTreeWidgetItem *sensoritem =
-              mkItem(hostitem, sensor->path().filename().string());
-          sensoritem->setFlags(sensoritem->flags() & ~Qt::ItemIsSelectable);
-          for (directory_iterator rrd(*sensor); rrd != end_itr; ++rrd) {
-            if (is_regular(*rrd) && extension(*rrd) == ".rrd") {
-              QTreeWidgetItem *rrditem = mkItem(sensoritem, basename(*rrd));
-              rrditem->setFlags(rrditem->flags() & ~Qt::ItemIsSelectable);
-              std::ostringstream info;
-              info << host->path().filename().string() << delimiter
-                   << sensor->path().filename().string() << delimiter
-                   << basename(*rrd);
-              get_datasources(rrd->path().string(), info.str(), rrditem);
-            }
-          }
-        }
-      }
+    if (!is_directory(*host))
+      continue;
+
+    QTreeWidgetItem *hostitem =
+        mkItem(listview, host->path().filename().string());
+    hostitem->setFlags(hostitem->flags() & ~Qt::ItemIsSelectable);
+
+    for (directory_iterator sensor(*host); sensor != end_itr; ++sensor) {
+      if (!is_directory(*sensor))
+        continue;
+
+      QTreeWidgetItem *sensoritem =
+          mkItem(hostitem, sensor->path().filename().string());
+      sensoritem->setFlags(sensoritem->flags() & ~Qt::ItemIsSelectable);
     }
+
+    hostitem->sortChildren(0, Qt::AscendingOrder);
+    recurseTree(hostitem, host);
   }
+
   listview->sortItems(0, Qt::AscendingOrder);
 }
 
