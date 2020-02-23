@@ -1,3 +1,5 @@
+Visit the new and improved [kcollectd home page](https://www.antonioerusso.com/projects/kcollectd/)!
+
 # Overview
 
 kcollectd is a graphical front-end to [collectd](https://collectd.org/),
