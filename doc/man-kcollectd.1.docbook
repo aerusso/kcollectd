@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!DOCTYPE refentry PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN" "dtd/kdedbx45.dtd" [
+<!ENTITY % English "INCLUDE">
+<!ENTITY kcollectd "<command>kcollectd</command>">
+<!ENTITY collectd "<command>collectd</command>">
+]>
+
+<refentry lang="&language;">
+<refentryinfo>
+<title>KCollectd User's Manual</title>
+<author><firstname>M G</firstname><surname>Berberich</surname>
+<contrib>KCollectd, this man page.</contrib>
+<email>berberic@fmi.uni-passau.de</email></author>
+<author><firstname>Antonio</firstname><surname>Russo</surname>
+<contrib>KCollectd man page.</contrib>
+<email>antonio.e.russo@gmail.com</email></author>
+<date>2019-08-31</date>
+<releaseinfo>KCollectd 0.10.2</releaseinfo>
+</refentryinfo>
+
+<refmeta>
+<refentrytitle>&kcollectd;</refentrytitle>
+<manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+<refname>kcollectd</refname>
+<refpurpose>displays system time-series monitoring information in collectd rrd datacollections</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+<command>kcollectd</command>
+<arg choice="opt"><replaceable>KCollectd options</replaceable></arg>
+<arg choice="opt"><replaceable>file</replaceable></arg>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1 id="description"><title>Description</title>
+<para>&kcollectd; is a simple application that presents &collectd;
+time-series data in a natural way.  The mousewheel up and down action
+lets you zoom in and out, respectively, and click and dragging lets you
+move around (in the recorded history).  There is an automatic
+update-and-follow mode, which presents new data in real time, allowing
+&kcollectd; to be used as a status monitor.</para>
+
+<para>At the left side of the window there is a tree that lists all identified
+&collectd; data sources.
+You can display any such data by dragging it onto the desired graph in the
+right hand panel.</para>
+
+<para>At the right, various data sources are shown in graphs. You can move
+the graph to the left or right with the mouse and zoom in or out with
+the mousewheel or the zoom buttons.  Plots can be created and destroyed from
+the right-click context menu.  The context menu also allows for the deletion
+of unwanted data sources from a given graph.</para>
+
+<para>At the lower left the auto-update-button switches &kcollectd; into the
+update-and-follow-mode.  In this mode the right side of the graph is pinned to
+the current time, and new data is presented in real time.  The plot can still
+be zoomed with the mouse wheel.</para>
+</refsect1>
+
+<refsect1 id="arguments"><title>Arguments</title>
+<variablelist>
+<varlistentry>
+<term><option>file</option></term>
+<listitem>
+<para>A collectd file to open.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1>
+<title>See Also</title>
+<simplelist>
+<member>More detailed user documentation is available from <ulink
+url="help:/kcollectd">help:/kcollectd</ulink>
+(either enter this <acronym>URL</acronym> into &konqueror;, or run
+<userinput><command>khelpcenter</command>
+<parameter>help:/kcollectd</parameter></userinput>).</member>
+<member>kf5options(7)</member>
+<member>qt5options(7)</member>
+<member>collectd(1)</member>
+<member>rrdtool(1)</member>
+</simplelist>
+</refsect1>
+
+</refentry>
