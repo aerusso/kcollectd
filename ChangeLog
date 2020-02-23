@@ -1,3 +1,9 @@
+### 2020-02-23:
+ - Version 0.11
+ - Code and documentation cleanup (thank you Pino Toscano!)
+ - Split paths on - character:
+   - Should make the df plugin more convenient
+
 ### 2019-08-22:
  - Version 0.10
  - Port to Qt5
