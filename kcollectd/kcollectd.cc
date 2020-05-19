@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   QApplication application(argc, argv);
   KAboutData about(
       "kcollectd", i18n("KCollectd"), VERSION,
-      i18n("Viewer for Collectd-databases"), KAboutLicense::GPL,
+      i18n("Viewer for Collectd-databases"), KAboutLicense::GPL_V3,
       i18n("© 2008, 2009 M G Berberich"), i18n("Maintainer and developer"),
       "https://www.antonioerusso.com/projects/kcollectd",
       "Antonio E Russo <antonio.e.russo@gmail.com>");
