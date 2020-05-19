@@ -1,5 +1,5 @@
 /* Version */
-#define VERSION "@VERSION@"
+#define VERSION "@PROJECT_VERSION@"
 
 /* Basedir of collectd databases */
 #define RRD_BASEDIR "@RRD_BASEDIR@"
