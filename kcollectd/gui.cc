@@ -58,6 +58,7 @@
 
 #include "drag_pixmap.xpm"
 
+#include "../config.h"
 #ifndef RRD_BASEDIR
 #define RRD_BASEDIR "/var/lib/collectd/rrd"
 #endif
