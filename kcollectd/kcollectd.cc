@@ -63,6 +63,12 @@ int main(int argc, char **argv) {
   parser.addHelpOption();
   parser.addVersionOption();
 
+  QCommandLineOption rrdbaseOption(QStringList() << "b" << "basedir",
+                                   i18n("Read RRD files from <rrdbase>"),
+                                   QString("rrdbase"),
+                                   QString(RRD_BASEDIR));
+
+  parser.addOption(rrdbaseOption);
   parser.addPositionalArgument("+[file]", i18n("A kcollectd-file to open"));
   parser.process(application);
 
@@ -72,6 +78,7 @@ int main(int argc, char **argv) {
       kRestoreMainWindows<KCollectdGui>();
     } else {
       KCollectdGui *gui = new KCollectdGui;
+      gui->setRRDBaseDir(parser.value(rrdbaseOption));
       // handling arguments
       if (args.length() == 1)
         gui->load(args.at(0));
@@ -81,7 +88,7 @@ int main(int argc, char **argv) {
   } catch (const std::exception &e) {
     KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
                                "Terminating.",
-                               QString(RRD_BASEDIR)));
+                               parser.value(rrdbaseOption)));
     exit(1);
   }
 

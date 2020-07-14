@@ -59,9 +59,6 @@
 #include "drag_pixmap.xpm"
 
 #include "../config.h"
-#ifndef RRD_BASEDIR
-#define RRD_BASEDIR "/var/lib/collectd/rrd"
-#endif
 
 #define I18N_NOOP(text) text
 
@@ -249,7 +246,7 @@ static void get_rrds(const boost::filesystem::path rrdpath,
  * @param parent parent-widget see KMainWindow
  */
 KCollectdGui::KCollectdGui(QWidget *parent)
-    : KMainWindow(parent), action_collection(parent) {
+    : KMainWindow(parent), action_collection(parent), rrdbasedir() {
   // standard_actions
   for (size_t i = 0; i < sizeof(standard_actions) / sizeof(*standard_actions);
        ++i)
@@ -370,9 +367,6 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addAction(actionCollection()->action("hideTree"));
 
   menuBar()->addMenu(helpMenu());
-
-  // build rrd-tree
-  get_rrds(RRD_BASEDIR, listview());
 }
 
 KCollectdGui::~KCollectdGui() {}
@@ -401,6 +395,15 @@ void KCollectdGui::set(Graph *new_graph) {
     delete graph;
   }
   vbox->insertWidget(0, new_graph);
+}
+
+void KCollectdGui::setRRDBaseDir(const QString &newrrdbasedir) {
+  if (rrdbasedir.isEmpty()) {
+    rrdbasedir = QString(newrrdbasedir);
+    // build rrd-tree
+    get_rrds(rrdbasedir.toStdString(), listview());
+  } 
+  // XXX: silently fail on new unimplemented change of rrd base
 }
 
 void KCollectdGui::autoUpdate(bool t) {

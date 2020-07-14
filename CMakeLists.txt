@@ -39,7 +39,7 @@ add_definitions(-Wall -g)
 if(NOT RRD_BASEDIR)
   set(RRD_BASEDIR "/var/lib/collectd/rrd")
 endif(NOT RRD_BASEDIR)
-set(RRD_BASEDIR ${RRD_BASEDIR} CACHE PATH "path to collectd-data")
+set(RRD_BASEDIR ${RRD_BASEDIR} CACHE PATH "default path to collectd-data")
 
 # config.h
 configure_file(config.h.in config.h)

@@ -48,6 +48,7 @@ public:
   KActionCollection *actionCollection() { return &action_collection; }
 
   void set(Graph *graph);
+  void setRRDBaseDir(const QString &newrrdbasedir);
   void load(const QString &filename);
   void save(const QString &filename);
 
@@ -76,6 +77,7 @@ private:
   QPushButton *auto_button;
   QAction *auto_action, *panel_action;
   QString filename;
+  QString rrdbasedir;
 
   KActionCollection action_collection;
 };
