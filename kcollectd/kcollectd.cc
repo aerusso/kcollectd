@@ -47,12 +47,12 @@ int main(int argc, char **argv) {
       i18n("Viewer for Collectd-databases"), KAboutLicense::GPL_V3,
       i18n("© 2008, 2009 M G Berberich"), i18n("Maintainer and developer"),
       "https://www.antonioerusso.com/projects/kcollectd",
-      "Antonio E Russo <antonio.e.russo@gmail.com>");
+      "Antonio E Russo <aerusso@aerusso.net>");
   about.addAuthor(i18n("M G Berberich"), i18n("Maintainer and developer"),
                   "M G Berberich <berberic@fmi.uni-passau.de>",
                   "http://www.forwiss.uni-passau.de/~berberic");
   about.addAuthor(i18n("A E Russo"), i18n("Maintainer and developer"),
-                  "Antonio E Russo <antonio.e.russo@gmail.com>",
+                  "Antonio E Russo <aerusso@aerusso.net>",
                   "https://www.antonioerusso.com");
   about.setTranslator(i18nc("NAME OF TRANSLATORS", "Your names"),
                       i18nc("EMAIL OF TRANSLATORS", "Your emails"));
