@@ -246,7 +246,7 @@ static void get_rrds(const boost::filesystem::path rrdpath,
  * @param parent parent-widget see KMainWindow
  */
 KCollectdGui::KCollectdGui(QWidget *parent)
-    : KMainWindow(parent), action_collection(parent), rrdbasedir() {
+    : KMainWindow(parent), rrdbasedir(), action_collection(parent) {
   // standard_actions
   for (size_t i = 0; i < sizeof(standard_actions) / sizeof(*standard_actions);
        ++i)
