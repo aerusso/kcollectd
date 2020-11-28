@@ -119,20 +119,20 @@ public:
   void autoUpdate(bool active);
   bool autoUpdate() { return (autoUpdateTimer != -1); }
 
-  virtual QSize sizeHint() const;
-  virtual void paintEvent(QPaintEvent *ev);
-  virtual void resizeEvent(QResizeEvent *);
+  virtual QSize sizeHint() const override;
+  virtual void paintEvent(QPaintEvent *ev) override;
+  virtual void resizeEvent(QResizeEvent *ev) override;
 
   virtual void last(time_t span);
   virtual void zoom(double factor);
-  virtual void mousePressEvent(QMouseEvent *e);
-  virtual void mouseMoveEvent(QMouseEvent *e);
-  virtual void wheelEvent(QWheelEvent *e);
-  virtual void timerEvent(QTimerEvent *event);
+  virtual void mousePressEvent(QMouseEvent *e) override;
+  virtual void mouseMoveEvent(QMouseEvent *e) override;
+  virtual void wheelEvent(QWheelEvent *e) override;
+  virtual void timerEvent(QTimerEvent *event) override;
   // drag-and-drop
-  virtual void dragEnterEvent(QDragEnterEvent *event);
-  virtual void dragMoveEvent(QDragMoveEvent *event);
-  virtual void dropEvent(QDropEvent *event);
+  virtual void dragEnterEvent(QDragEnterEvent *event) override;
+  virtual void dragMoveEvent(QDragMoveEvent *event) override;
+  virtual void dropEvent(QDropEvent *event) override;
 
   // Iterators
   iterator begin() { return glist.begin(); }

@@ -67,8 +67,8 @@ public slots:
   virtual void save();
 
 protected:
-  virtual void saveProperties(KConfigGroup &);
-  virtual void readProperties(const KConfigGroup &);
+  virtual void saveProperties(KConfigGroup &) override;
+  virtual void readProperties(const KConfigGroup &) override;
 
 private:
   QTreeWidget *listview_;
