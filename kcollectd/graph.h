@@ -78,7 +78,7 @@ private:
 };
 
 /**
- * subclassed MimeData for interal drag'n drop
+ * subclassed MimeData for internal drag'n drop
  */
 class GraphMimeData : public QMimeData {
   Q_OBJECT

@@ -506,7 +506,7 @@ void Graph::drawYLines(QPainter &paint, const QRect &rect, const Range &y_range,
       base = base * 5.0;
   }
 
-  // and return if unsufficient
+  // and return if insufficient
   if (base * -ymap.m() < 5)
     return;
 
@@ -673,7 +673,7 @@ void Graph::drawAll() {
   } else {
     QPainter paint(this);
     paint.eraseRect(contentsRect());
-    const QString label(i18n("Drop sensors from list here"));
+    const QString label(i18n("Drag a data source from tree (at left) to view it here."));
     const int labelwidth = paint.fontMetrics().width(label);
     paint.drawText((width() - labelwidth) / 2, height() / 2, label);
     paint.end();

@@ -29,7 +29,7 @@
 #include "misc.h"
 
 /**
- * determine the apropriate SI-prefix for a number
+ * determine the appropriate SI-prefix for a number
  */
 bool si_char(double d, std::string &s, double &m) {
   const struct {
@@ -61,7 +61,7 @@ bool si_char(double d, std::string &s, double &m) {
 }
 
 /**
- * formats a number with prefix s and magnitude m, precission p
+ * formats a number with prefix s and magnitude m, precision p
  */
 std::string si_number(double d, int p, const std::string &s, double m) {
   std::ostringstream os;
@@ -152,7 +152,7 @@ Range range_adj(const Range &y_range, double *base) {
     max += 1;
     min -= 1;
   } else {
-    // allign to sensible values
+    // align to sensible values
     tmp_base = pow(10, floor(log(max - min) / log(10)));
     min = floor(min / tmp_base) * tmp_base;
     max = ceil(max / tmp_base) * tmp_base;

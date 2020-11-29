@@ -31,7 +31,7 @@
 ### 2009-06-06:
  - Version 0.8
  - added drag-n-drop Pixmap
- - make datasource-tree hideable
+ - make data source tree hideable
  - multiline legends
 
 ### 2009-06-01:
@@ -46,7 +46,7 @@
  - Version 0.7
  - context-menu
  - changed functionality of gui.
-   - now datasources has to be dragged to graph-widget
+   - now data sources have to be dragged to graph-widget
 
 ### 2009-05-10:
  - widgets allows multigraphs
@@ -77,15 +77,15 @@
 
 ### 2008-07-31:
  - Version 0.2
- - multi-select. The user now can select multible datasources.
-   - There might be problems if rrd-layout differs between datasources
+ - multi-select. The user now can select multiple data sources.
+   - There might be problems if rrd-layout differs between data sources
  - some cleanup
 
 ### 2008-07-23
  - some cleanup, time-axes
 
 ### 2008-07-14
- - removed the label displaying the datasource
+ - removed the label displaying the data source
  - added last-{hour,day,week,month}-buttons
  - added some sensiblity-checks to zooming
  - fixed Qt-problem with strftimes localized output

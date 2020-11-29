@@ -73,8 +73,8 @@ msgid "Automatic Update"
 msgstr "automatisches Update"
 
 #: ../kcollectd/graph.cc:656
-msgid "Drop sensors from list here"
-msgstr "Ziehen Sie Sensoren aus der Liste hierher"
+msgid "Drag a data source from tree (at left) to view it here."
+msgstr "Ziehen Sie eine Datenquelle aus dem Baum (links), um sie hier anzuzeigen."
 
 #: ../kcollectd/kcollectd.cc:146
 msgid ""
@@ -85,8 +85,8 @@ msgstr ""
 "Breche ab."
 
 #: ../kcollectd/gui.cc:101
-msgid "Hide Datasource Tree"
-msgstr "Blende Datenquellenbaum aus"
+msgid "Hide Sensor Data Tree"
+msgstr "Blende Sensordaten aus"
 
 #: ../kcollectd/kcollectd.cc:120
 msgid "KCollectd"
@@ -117,7 +117,7 @@ msgid "Maintainer and developer"
 msgstr ""
 
 #: ../kcollectd/gui.cc:114
-msgid "Sensordata"
+msgid "Sensor Data"
 msgstr "Sensordaten"
 
 #: ../kcollectd/gui.cc:296 ../kcollectd/gui.cc:331

@@ -41,7 +41,7 @@ msgid "week %V"
 msgstr ""
 
 #: ../kcollectd/graph.cc:656
-msgid "Drop sensors from list here"
+msgid "Drag a data source from tree (at left) to view it here."
 msgstr ""
 
 #: ../kcollectd/graph.cc:761
@@ -81,11 +81,11 @@ msgid "Automatic Update"
 msgstr ""
 
 #: ../kcollectd/gui.cc:101
-msgid "Hide Datasource Tree"
+msgid "Hide Sensor Data Tree"
 msgstr ""
 
 #: ../kcollectd/gui.cc:114
-msgid "Sensordata"
+msgid "Sensor Data"
 msgstr ""
 
 #: ../kcollectd/gui.cc:126

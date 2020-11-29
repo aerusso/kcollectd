@@ -268,7 +268,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   actionCollection()->addAction("autoUpdate", auto_action);
   connect(auto_action, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 
-  panel_action = new QAction(i18n("Hide Datasource Tree"), this);
+  panel_action = new QAction(i18n("Hide Sensor Data Tree"), this);
   panel_action->setCheckable(true);
   panel_action->setShortcut(QKeySequence("f9"));
   actionCollection()->addAction("hideTree", panel_action);
@@ -281,7 +281,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   QHBoxLayout *hbox = new QHBoxLayout(main_widget);
   listview_ = new QTreeWidget;
   listview_->setColumnCount(1);
-  listview_->setHeaderLabels(QStringList(i18n("Sensordata")));
+  listview_->setHeaderLabels(QStringList(i18n("Sensor Data")));
   listview_->setRootIsDecorated(true);
   listview_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   hbox->addWidget(listview_);
