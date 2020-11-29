@@ -42,11 +42,15 @@
  * rrd_info does not guarantee leaving it alone.
  */
 static inline rrd_info_t *rrd_info(int, const std::string &filename) {
-  char c_file[filename.length() + 1];
+  char *c_file = (char *)malloc(sizeof(char)*(filename.length() + 1));
+  if (!c_file)
+    return NULL;
   filename.copy(c_file, std::string::npos);
   c_file[filename.length()] = 0;
   char *arg[] = {0, c_file, 0};
-  return rrd_info(2, arg);
+  rrd_info_t *result = rrd_info(2, arg);
+  free(c_file);
+  return result;
 }
 
 /**
