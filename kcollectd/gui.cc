@@ -21,6 +21,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <stack>
 
 #include <boost/filesystem.hpp>
 
