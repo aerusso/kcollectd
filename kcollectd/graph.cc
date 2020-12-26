@@ -193,7 +193,7 @@ int Graph::calcLegendHeights(int box_size, int width) {
 
     std::vector<int> label_width;
     for (GraphInfo::const_iterator gi = i->begin(); gi != i->end(); ++gi)
-      label_width.push_back(fontmetric.width(gi->label) + box_size + marg);
+      label_width.push_back(fontmetric.horizontalAdvance(gi->label) + box_size + marg);
 
     const int n = label_width.size();
     int r;
@@ -231,7 +231,7 @@ void Graph::drawLegend(QPainter &paint, int left, int y, int box_size,
                      color_line[n % 8]);
       paint.drawText(cx + box_size + marg, cy, i->label);
 
-      int w = box_size + marg + fontmetric.width(i->label);
+      int w = box_size + marg + fontmetric.horizontalAdvance(i->label);
       if (w > max_width)
         max_width = w;
       cy += fontmetric.lineSpacing();
@@ -266,7 +266,7 @@ void Graph::drawHeader(QPainter &paint) {
   QString buffer_to = Qstrftime(format.toLatin1(), localtime(&data_end));
   QString label = i18n("from %1 to %2", buffer_from, buffer_to);
   int x = (contentsRect().left() + contentsRect().right()) / 2 -
-          fontmetric.width(label) / 2;
+          fontmetric.horizontalAdvance(label) / 2;
   int y = fontmetric.ascent() + marg;
   paint.drawText(x, y, label);
 
@@ -294,8 +294,8 @@ void Graph::drawFooter(QPainter &paint, int left, int right) {
   QString buffer_to = Qstrftime(format.toLatin1(), localtime(&data_end));
   QString label = i18n("from %1 to %2", buffer_from, buffer_to);
 
-  fontmetric.width(label);
-  paint.drawText((left + right) / 2 - fontmetric.width(label) / 2, label_y2,
+  fontmetric.horizontalAdvance(label);
+  paint.drawText((left + right) / 2 - fontmetric.horizontalAdvance(label) / 2, label_y2,
                  label);
 
   paint.restore();
@@ -343,7 +343,7 @@ void Graph::drawXLabel(QPainter &paint, int y, int left, int right,
     localtime_r(&t, &tm);
     QString label = Qstrftime(i18n(format.toLatin1()).toLatin1(), &tm);
     if (!label.isNull()) {
-      const int width = paint.fontMetrics().width(label);
+      const int width = paint.fontMetrics().horizontalAdvance(label);
       int x = center ? xmap(*i + i.interval() / 2) - width / 2
                      : xmap(*i) - width / 2;
 
@@ -402,7 +402,7 @@ void Graph::findXGrid(int width, QString &format, bool &center,
       QString label = Qstrftime(axis_params[i].format, localtime(&now));
       if (!label.isNull()) {
         const int textwidth =
-            fontmetric.width(label) * time_span / axis_params[i].major * 3 / 2;
+            fontmetric.horizontalAdvance(label) * time_span / axis_params[i].major * 3 / 2;
         if (textwidth < width) {
           switch (axis_params[i].align) {
           case align_tzalign:
@@ -434,7 +434,7 @@ void Graph::findXGrid(int width, QString &format, bool &center,
   }
   QString label = Qstrftime("%Y", localtime(&now));
   if (!label.isNull()) {
-    const int textwidth = fontmetric.width(label) * 3 / 2;
+    const int textwidth = fontmetric.horizontalAdvance(label) * 3 / 2;
     // fixed-point calculation with 16 bit fraction.
     int num = (time_span * textwidth * 16) / (year * width);
     if (num < 16) {
@@ -486,7 +486,7 @@ void Graph::drawYLabel(QPainter &paint, const QRect &rect, const Range &y_range,
   double max = floor(y_range.max() / base) * base;
   for (double i = min; i <= max; i += base) {
     const std::string label = si_number(i, 6, SI, mag);
-    const int x = rect.left() - fontmetric.width(label.c_str()) - 4;
+    const int x = rect.left() - fontmetric.horizontalAdvance(label.c_str()) - 4;
     paint.drawText(x, ymap(i) + fontmetric.ascent() / 2, label.c_str());
   }
 }
@@ -674,7 +674,7 @@ void Graph::drawAll() {
     QPainter paint(this);
     paint.eraseRect(contentsRect());
     const QString label(i18n("Drag a data source from tree (at left) to view it here."));
-    const int labelwidth = paint.fontMetrics().width(label);
+    const int labelwidth = paint.fontMetrics().horizontalAdvance(label);
     paint.drawText((width() - labelwidth) / 2, height() / 2, label);
     paint.end();
   }
