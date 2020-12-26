@@ -90,9 +90,9 @@ inline void KCollectdGui::last_day() { graph->last(3600 * 24); }
 
 inline void KCollectdGui::last_hour() { graph->last(3600); }
 
-inline void KCollectdGui::zoomIn() { graph->zoom(1.0 / 1.259921050); }
+inline void KCollectdGui::zoomIn() { graph->zoom(1.0); }
 
-inline void KCollectdGui::zoomOut() { graph->zoom(1.259921050); }
+inline void KCollectdGui::zoomOut() { graph->zoom(-1.0); }
 
 inline void KCollectdGui::splitGraph() { graph->splitGraph(); }
 

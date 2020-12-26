@@ -124,7 +124,7 @@ public:
   virtual void resizeEvent(QResizeEvent *ev) override;
 
   virtual void last(time_t span);
-  virtual void zoom(double factor);
+  virtual void zoom(double clicks);
   virtual void mousePressEvent(QMouseEvent *e) override;
   virtual void mouseMoveEvent(QMouseEvent *e) override;
   virtual void wheelEvent(QWheelEvent *e) override;

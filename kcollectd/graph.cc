@@ -886,10 +886,10 @@ void Graph::mouseMoveEvent(QMouseEvent *e) {
  *
  */
 void Graph::wheelEvent(QWheelEvent *e) {
-  if (e->delta() < 0)
-    zoom(1.259921050);
-  else
-    zoom(1.0 / 1.259921050);
+  int degreesScrolled = e->angleDelta().y();
+
+  if (degreesScrolled)
+    zoom(degreesScrolled / 120.0);
 }
 
 /**
@@ -984,7 +984,9 @@ void Graph::last(time_t new_span) {
 /**
  * zoom graph with factor
  */
-void Graph::zoom(double factor) {
+void Graph::zoom(double clicks) {
+  double factor = exp(-0.23104906027008765 * clicks);
+
   // don't zoom to wide
   if (factor < 1 && span * factor < width())
     return;
