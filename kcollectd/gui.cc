@@ -44,7 +44,6 @@
 #include <QWidget>
 #include <QXmlStreamWriter>
 
-#include <KHelpMenu>
 #include <KIconLoader>
 #include <KLocalizedString>
 #include <KMainWindow>
@@ -247,7 +246,7 @@ static void get_rrds(const boost::filesystem::path rrdpath,
  * @param parent parent-widget see KMainWindow
  */
 KCollectdGui::KCollectdGui(QWidget *parent)
-    : KMainWindow(parent), rrdbasedir(), action_collection(parent) {
+    : KMainWindow(parent), rrdbasedir(), mHelpMenu(this), action_collection(parent) {
   // standard_actions
   for (size_t i = 0; i < sizeof(standard_actions) / sizeof(*standard_actions);
        ++i)
@@ -367,7 +366,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   viewMenu->addSeparator();
   viewMenu->addAction(actionCollection()->action("hideTree"));
 
-  menuBar()->addMenu(helpMenu());
+  menuBar()->addMenu(mHelpMenu.menu());
 }
 
 KCollectdGui::~KCollectdGui() {}

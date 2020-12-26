@@ -24,6 +24,7 @@
 
 #include <KConfigGroup>
 #include <KMainWindow>
+#include <KHelpMenu>
 #include <kactioncollection.h>
 
 #include "graph.h"
@@ -78,6 +79,7 @@ private:
   QAction *auto_action, *panel_action;
   QString filename;
   QString rrdbasedir;
+  KHelpMenu mHelpMenu;
 
   KActionCollection action_collection;
 };
