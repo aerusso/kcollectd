@@ -371,7 +371,7 @@ KCollectdGui::KCollectdGui(QWidget *parent)
 
 KCollectdGui::~KCollectdGui() {}
 
-void KCollectdGui::startDrag(QTreeWidgetItem *widget, int col) {
+void KCollectdGui::startDrag(QTreeWidgetItem *widget, int /*col*/) {
   //       if (event->button() == Qt::LeftButton
   // && iconLabel->geometry().contains(event->pos())) {
 

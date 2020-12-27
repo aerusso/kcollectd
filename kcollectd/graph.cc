@@ -729,7 +729,7 @@ void Graph::paintEvent(QPaintEvent *e) {
   drawAll();
 }
 
-void Graph::resizeEvent(QResizeEvent *e) { layout(); }
+void Graph::resizeEvent(QResizeEvent * /*event*/) { layout(); }
 
 Graph::graph_list::iterator Graph::graphAt(const QPoint &pos) {
   for (graph_list::iterator i = begin(); i != end(); ++i) {
@@ -895,7 +895,7 @@ void Graph::wheelEvent(QWheelEvent *e) {
 /**
  *
  */
-void Graph::timerEvent(QTimerEvent *event) {
+void Graph::timerEvent(QTimerEvent * /*event*/) {
   data_is_valid = false;
   start = time(0) - timer_diff;
   update();
