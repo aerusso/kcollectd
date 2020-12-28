@@ -108,11 +108,11 @@ msgstr "Letzter Monat"
 msgid "Last Week"
 msgstr "Letzte Woche"
 
-#: ../kcollectd/kcollectd.cc:127
-msgid "M G Berberich"
-msgstr "M G Berberich"
+#: ../kcollectd/kcollectd.cc:51
+msgid "Original author"
+msgstr "Originalautor"
 
-#: ../kcollectd/kcollectd.cc:124
+#: ../kcollectd/kcollectd.cc:54
 msgid "Maintainer and developer"
 msgstr ""
 
@@ -125,7 +125,7 @@ msgid "System message is: ‘%1’"
 msgstr "Systemnachricht lautet: ‚%1‘"
 
 #: ../kcollectd/kcollectd.cc:121
-msgid "Viewer for Collectd-databases"
+msgid "Viewer for collectd databases"
 msgstr "Betrachter für collectd Datensammlungen"
 
 #: ../kcollectd/kcollectd.cc:131
@@ -201,10 +201,6 @@ msgstr "schaltet den automatischen update-und-folge Modus an und aus"
 #: ../kcollectd/graph.cc:365
 msgid "week %V"
 msgstr "Woche %V"
-
-#: ../kcollectd/kcollectd.cc:123
-msgid "© 2008, 2009 M G Berberich"
-msgstr "© 2008, 2009 M G Berberich"
 
 #~ msgctxt "Your emails"
 #~ msgid "EMAIL OF TRANSLATORS"

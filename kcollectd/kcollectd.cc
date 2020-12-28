@@ -43,17 +43,17 @@ int main(int argc, char **argv) {
   std::vector<std::string> rrds;
   QApplication application(argc, argv);
   KAboutData about(
-      "kcollectd", i18n("KCollectd"), VERSION,
-      i18n("Viewer for Collectd-databases"), KAboutLicense::GPL_V3,
-      i18n("© 2008, 2009 M G Berberich"), i18n("Maintainer and developer"),
-      "https://www.antonioerusso.com/projects/kcollectd",
-      "Antonio E Russo <aerusso@aerusso.net>");
-  about.addAuthor(i18n("M G Berberich"), i18n("Maintainer and developer"),
-                  "M G Berberich <berberic@fmi.uni-passau.de>",
-                  "http://www.forwiss.uni-passau.de/~berberic");
-  about.addAuthor(i18n("A E Russo"), i18n("Maintainer and developer"),
-                  "Antonio E Russo <aerusso@aerusso.net>",
-                  "https://www.antonioerusso.com");
+      QStringLiteral("kcollectd"), i18n("KCollectd"), VERSION,
+      i18n("Viewer for collectd databases"), KAboutLicense::GPL_V3,
+      QStringLiteral("© 2008, 2009 M G Berberich\n© 2019-2020 A E Russo"), QString(),
+      QStringLiteral("https://www.antonioerusso.com/projects/kcollectd"),
+      QStringLiteral("KCollectd Bug Reports <kcollectd@aerusso.net>"));
+  about.addAuthor(QStringLiteral("M G Berberich"), i18n("Original author"),
+                  QStringLiteral("M G Berberich <berberic@fmi.uni-passau.de>"),
+                  QStringLiteral("http://www.forwiss.uni-passau.de/~berberic"));
+  about.addAuthor(QStringLiteral("A E Russo"), i18n("Maintainer and developer"),
+                  QStringLiteral("Antonio E Russo <aerusso@aerusso.net>"),
+                  QStringLiteral("https://www.antonioerusso.com"));
   about.setTranslator(i18nc("NAME OF TRANSLATORS", "Your names"),
                       i18nc("EMAIL OF TRANSLATORS", "Your emails"));
 

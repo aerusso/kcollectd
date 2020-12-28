@@ -160,19 +160,15 @@ msgid "KCollectd"
 msgstr ""
 
 #: ../kcollectd/kcollectd.cc:121
-msgid "Viewer for Collectd-databases"
+msgid "Viewer for collectd databases"
 msgstr ""
 
-#: ../kcollectd/kcollectd.cc:123
-msgid "© 2008, 2009 M G Berberich"
+#: ../kcollectd/kcollectd.cc:51
+msgid "Original author"
 msgstr ""
 
-#: ../kcollectd/kcollectd.cc:124
+#: ../kcollectd/kcollectd.cc:54
 msgid "Maintainer and developer"
-msgstr ""
-
-#: ../kcollectd/kcollectd.cc:127
-msgid "M G Berberich"
 msgstr ""
 
 #: ../kcollectd/kcollectd.cc:130
