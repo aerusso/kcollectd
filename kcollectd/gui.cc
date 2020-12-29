@@ -37,6 +37,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
+#include <QSplitter>
 #include <QStandardPaths>
 #include <QTreeWidget>
 #include <QUrl>
@@ -278,18 +279,23 @@ KCollectdGui::KCollectdGui(QWidget *parent)
   QWidget *main_widget = new QWidget(this);
   setCentralWidget(main_widget);
 
-  QHBoxLayout *hbox = new QHBoxLayout(main_widget);
+  QHBoxLayout *hboxLayout = new QHBoxLayout(main_widget);
+  treeSplitter_ = new QSplitter;
+  hboxLayout->addWidget(treeSplitter_);
   listview_ = new QTreeWidget;
   listview_->setColumnCount(1);
   listview_->setHeaderLabels(QStringList(i18n("Sensor Data")));
   listview_->setRootIsDecorated(true);
-  listview_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  hbox->addWidget(listview_);
+  listview_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+  treeSplitter_->addWidget(listview_);
 
+  QWidget *vboxWidget = new QWidget;
   vbox = new QVBoxLayout;
-  hbox->addLayout(vbox);
+  vboxWidget->setLayout(vbox);
+  treeSplitter_->addWidget(vboxWidget);
   graph = new Graph;
   vbox->addWidget(graph);
+  connect(treeSplitter_, SIGNAL(splitterMoved(int, int)), this, SLOT(resizeTree(int, int)));
 
   QHBoxLayout *hbox2 = new QHBoxLayout;
   vbox->addLayout(hbox2);
@@ -412,7 +418,22 @@ void KCollectdGui::autoUpdate(bool t) {
   graph->autoUpdate(t);
 }
 
-void KCollectdGui::hideTree(bool t) { listview_->setHidden(t); }
+void KCollectdGui::hideTree(bool t) {
+  if (t) {
+    treeSplitter_->setSizes({0,width()});
+  } else {
+    int tree_width = listview_->minimumSizeHint().rwidth();
+    treeSplitter_->setSizes({tree_width, width()-tree_width});
+  }
+}
+
+void KCollectdGui::resizeTree(int pos, int) {
+  if (pos) {
+    panel_action->setChecked(false);
+  } else {
+    panel_action->setChecked(true);
+  }
+}
 
 void KCollectdGui::load() {
   QString file = QFileDialog::getOpenFileName(this, "", QDir::homePath(),
@@ -511,7 +532,7 @@ void KCollectdGui::save(const QString &file) {
 }
 
 void KCollectdGui::saveProperties(KConfigGroup &conf) {
-  conf.writeEntry("hide-navigation", listview_->isHidden());
+  conf.writeEntry("hide-navigation", panel_action->isChecked());
   conf.writeEntry("auto-update", graph->autoUpdate());
   conf.writeEntry("range", qint64(graph->range()));
   if (!graph->changed() && !filename.isEmpty()) {
@@ -547,6 +568,7 @@ void KCollectdGui::readProperties(const KConfigGroup &conf) {
     }
   }
   panel_action->setChecked(nav);
+  hideTree(nav);
   autoUpdate(aut);
   graph->last(range);
 }

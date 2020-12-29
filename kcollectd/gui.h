@@ -31,6 +31,7 @@
 
 class QLabel;
 class Graph;
+class QSplitter;
 class QTreeWidget;
 class QTreeWidgetItem;
 class QVBoxLayout;
@@ -63,6 +64,7 @@ public slots:
   virtual void zoomOut();
   virtual void autoUpdate(bool active);
   virtual void hideTree(bool active);
+  virtual void resizeTree(int pot, int);
   virtual void splitGraph();
   virtual void load();
   virtual void save();
@@ -73,6 +75,7 @@ protected:
 
 private:
   QTreeWidget *listview_;
+  QSplitter *treeSplitter_;
   QVBoxLayout *vbox;
   Graph *graph;
   QPushButton *auto_button;
