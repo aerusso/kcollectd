@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN" "dtd/kdedbx45.dtd" [
-  <!ENTITY kcollectd "<application>kcollectd 0.11.99.0</application>">
+  <!ENTITY kcollectd "<application>kcollectd @PROJECT_VERSION@</application>">
   <!ENTITY kappname "&kcollectd;">
   <!ENTITY package "kcollectd">
   <!ENTITY % addindex "IGNORE">
@@ -68,8 +68,8 @@ as Authors, publish date, the abstract, and Keywords -->
      and in the FDL itself on how to use it. -->
 <legalnotice>&FDLNotice;</legalnotice>
 
-<date>2020-07-13</date>
-<releaseinfo>0.11.99.0</releaseinfo>
+<date>@PROJECT_RELEASE_DATE@</date>
+<releaseinfo>@PROJECT_VERSION@</releaseinfo>
 
 <abstract>
 <para>
