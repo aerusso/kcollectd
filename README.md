@@ -2,12 +2,14 @@ Visit the new and improved [kcollectd home page](https://www.antonioerusso.com/p
 
 # Overview
 
-kcollectd is a graphical front-end to [collectd](https://collectd.org/),
-a data collection service that monitors, by polling or pushed updates,
-system information, such as temperature or free RAM.
+kcollectd is a graphical front-end to [collectd](https://collectd.org/), a data
+collection service that monitors, by polling or pushed updates, system
+information, such as temperature or free RAM.  kcollectd provides a graphical
+display of these collected statistics.
 
-kcollectd directly displays the data, which is stored in an round-robin
-database.
+More generally, kcollectd can display the data stored in any round-robin
+database (RRD).  Use the `--basedir` command line option to load RRDs from a
+non-standard location.
 
 # History
 Many thanks to [M G Berberich](https://www.forwiss.uni-passau.de/~berberic/),

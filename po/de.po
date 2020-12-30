@@ -78,10 +78,10 @@ msgstr "Ziehen Sie eine Datenquelle aus dem Baum (links), um sie hier anzuzeigen
 
 #: ../kcollectd/kcollectd.cc:146
 msgid ""
-"Failed to read collectd-structure at '%1'\n"
+"Failed to read RRD files at '%1' (change with --basedir)\n"
 "Terminating."
 msgstr ""
-"Die collectd-Struktur unter ‚%1‘ konnte nicht gelesen werden.\n"
+"Die RRD-Dateien unter ‚%1‘ konnte nicht gelesen werden (mit --basedir ändern).\n"
 "Breche ab."
 
 #: ../kcollectd/gui.cc:101

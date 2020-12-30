@@ -187,6 +187,6 @@ msgstr ""
 
 #: ../kcollectd/kcollectd.cc:146
 msgid ""
-"Failed to read collectd-structure at '%1'\n"
+"Failed to read RRD files at '%1' (change with --basedir)\n"
 "Terminating."
 msgstr ""

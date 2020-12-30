@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
       gui->show();
     }
   } catch (const std::exception &e) {
-    KMessageBox::error(0, i18n("Failed to read collectd-structure at \'%1\'\n"
+    KMessageBox::error(0, i18n("Failed to read RRD tree at \'%1\' (change with --basedir)\n"
                                "Terminating.",
                                parser.value(rrdbaseOption)));
     exit(1);
