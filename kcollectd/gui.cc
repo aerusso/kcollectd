@@ -395,14 +395,6 @@ void KCollectdGui::startDrag(QTreeWidgetItem *widget, int /*col*/) {
   drag->exec();
 }
 
-void KCollectdGui::set(Graph *new_graph) {
-  if (graph) {
-    vbox->removeWidget(graph);
-    delete graph;
-  }
-  vbox->insertWidget(0, new_graph);
-}
-
 void KCollectdGui::setRRDBaseDir(const QString &newrrdbasedir) {
   if (rrdbasedir.isEmpty()) {
     rrdbasedir = QString(newrrdbasedir);

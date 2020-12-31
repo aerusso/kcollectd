@@ -59,35 +59,6 @@ inline double norm(const QPointF &a) {
 }
 
 /**
- * draw an arrow
- * origin: IRC:peppe
- */
-void drawArrow(QPainter &p, const QPoint &first, const QPoint &second) {
-  p.save();
-
-  QPen pen = p.pen();
-  const int width = pen.width();
-
-  p.translate(second);
-  QPointF difference = second - first;
-  double angle = atan2(difference.y(), difference.x());
-  angle *= 180.0 / M_PI; // to degrees
-  p.rotate(angle);
-
-  static const QPointF arrow[] = {
-      QPoint(0.0, 0.0), QPoint(-5.0 * width, -2.0 * width),
-      QPoint(-4.0 * width, 0.0), QPoint(-5.0 * width, 2.0 * width)};
-
-  p.setBrush(QBrush(pen.color(), Qt::SolidPattern));
-  p.drawLine(-4.0 * width, 0.0, -norm(difference), 0.0);
-  pen.setWidth(0);
-  p.setPen(pen);
-  p.drawPolygon(arrow, 4);
-
-  p.restore();
-}
-
-/**
  *
  */
 Graph::Graph(QWidget *parent)
