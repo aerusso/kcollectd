@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(SET CMP0063 NEW)
 
-project(kcollectd VERSION 0.11.99.0)
-set(PROJECT_RELEASE_DATE 2020-07-13)
+project(kcollectd VERSION 0.12.0)
+set(PROJECT_RELEASE_DATE 2020-12-31)
 
 find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
